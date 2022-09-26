@@ -1,0 +1,11 @@
+#/bin/bash
+
+clear
+
+if [ $1 ] ; then 
+    yay -S --noconfirm $1 
+    clear
+    sudo pacman -Sc --noconfirm
+else 
+    echo "Enter a package..."
+fi

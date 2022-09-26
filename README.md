@@ -1,16 +1,72 @@
-### Hi there 👋
+## Andrew Shteren (hireable)
+[![Arch Linux](https://img.shields.io/badge/Arch_Linux-1793D1?style=flat&logo=archlinux&logoColor=white)](https://archlinux.org)
+[![Telegram](https://img.shields.io/badge/Telegram-blue?style=flat&logo=telegram&logoColor=white)](https://t.me/shteren)
+[![VSCode](https://img.shields.io/badge/VSCode-0066B8?style=flat-square&logo=visual-studio-code&logoColor=white)](https://code.visualstudio.com)
+[![Android](https://img.shields.io/badge/Android-78C257?style=flat-square&logo=android&logoColor=white)](https://www.android.com)
 
+[![Wakatime Stats](https://github-readme-stats.vercel.app/api/wakatime?username=shteren&layout=compact&theme=dark)](https://wakatime.com/@shteren)
+
+<details>
+    <summary><h2>Github Stats</h2></summary>
+    <img src="https://github-readme-stats.vercel.app/api?username=2trvl&show_icons=true&hide_title=true&theme=dark&title_color=4691cf&icon_color=4289c5" alt="GitHub Stats"/>
+    <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=2trvl&layout=compact&theme=dark" alt="Github Most Used Languages"/>
+</details>
+
+## About
+* 👨‍💻 I am Andrew aka `shteren`
+* 🐍 Python, C and C# developer
+* ✨ Enjoy creating unique projects, doing photography and design
+* 💬 I run a [Telegram channel](https://shterenscode.t.me), where you can see my work and lifestyle
+* 🎨 Also check out my [Behance profile](https://behance.net/shteren)
+
+## Skills
+![desktop: ](https://img.shields.io/badge/desktop-white?style=flat&logo=data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIKCSB3aWR0aD0iNDE1cHgiIGhlaWdodD0iNDE1cHgiIHZpZXdCb3g9IjAgMCA0MTUgNDE1IiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA0MTUgNDE1OyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+CjxnPgoJPHBvbHlnb24gcG9pbnRzPSIyNjEuOCw0Ni44IDI2MS44LDEwNS4yIDMyMC4yLDEwNS4yIAkiLz4KCTxwb2x5Z29uIHBvaW50cz0iMjM2LjcsMTMwLjMgMjM2LjcsMzQuMyA4Mi4zLDM0LjMgODIuMywzODAuOCAzMzIuNywzODAuOCAzMzIuNywxMzAuMyAJIi8+CjwvZz4KPC9zdmc+Cg==)
+![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white)
+![C](https://img.shields.io/badge/C-00599C?style=flat&logo=c&logoColor=white)
+![C#](https://img.shields.io/badge/C%23-239120?style=flat&logo=csharp&logoColor=white)
+![Tui](https://img.shields.io/badge/Tui-gray?style=flat&logo=gnometerminal&logoColor=white)
+![Qt](https://img.shields.io/badge/Qt-41CD52?style=flat&logo=qt&logoColor=white)
+
+![frontend: ](https://img.shields.io/badge/frontend-white?style=flat&logo=data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iMjhweCIgaGVpZ2h0PSIyOHB4IiB2aWV3Qm94PSIwIDAgMjggMjgiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+CiAgICA8dGl0bGU+aWNfZmx1ZW50X3Bob25lX2Rlc2t0b3BfMjhfZmlsbGVkPC90aXRsZT4KICAgIDxkZXNjPkNyZWF0ZWQgd2l0aCBTa2V0Y2guPC9kZXNjPgogICAgPGcgaWQ9IvCflI0tUHJvZHVjdC1JY29ucyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCI+CiAgICAgICAgPGcgaWQ9ImljX2ZsdWVudF9waG9uZV9kZXNrdG9wXzI4X2ZpbGxlZCIgZmlsbD0iIzIxMjEyMSIgZmlsbC1ydWxlPSJub256ZXJvIj4KICAgICAgICAgICAgPHBhdGggZD0iTTkuNzQ2NTUzMTMsMTAgQzEwLjkzNzQxNzEsMTAgMTEuOTEyMTk4LDEwLjkyNTE2MTYgMTEuOTkxMzYyMywxMi4wOTU5NTEyIEwxMS45OTY1NTMxLDEyLjI1IEwxMS45OTY1NTMxLDIzLjc1IEMxMS45OTY1NTMxLDI0Ljk0MDg2NCAxMS4wNzEzOTE1LDI1LjkxNTY0NDkgOS45MDA2MDE5NCwyNS45OTQ4MDkyIEw5Ljc0NjU1MzEzLDI2IEw0LjI1LDI2IEMzLjA1OTEzNjAxLDI2IDIuMDg0MzU1MDgsMjUuMDc0ODM4NCAyLjAwNTE5MDgxLDIzLjkwNDA0ODggTDIsMjMuNzUgTDIsMTIuMjUgQzIsMTEuMDU5MTM2IDIuOTI1MTYxNTksMTAuMDg0MzU1MSA0LjA5NTk1MTE5LDEwLjAwNTE5MDggTDQuMjUsMTAgTDkuNzQ2NTUzMTMsMTAgWiBNNy43NDk5ODcxNCwyMS41IEw2LjI0ODgzNTExLDIxLjUgTDYuMTQ3MDY0NTUsMjEuNTA2ODQ2NiBDNS43ODA5ODg5OSwyMS41NTY1MDkgNS40OTg4MzUxMSwyMS44NzAzMDQyIDUuNDk4ODM1MTEsMjIuMjUgQzUuNDk4ODM1MTEsMjIuNjI5Njk1OCA1Ljc4MDk4ODk5LDIyLjk0MzQ5MSA2LjE0NzA2NDU1LDIyLjk5MzE1MzQgTDYuMjQ4ODM1MTEsMjMgTDcuNzQ5OTg3MTQsMjMgTDcuODUxNzU3NywyMi45OTMxNTM0IEM4LjIxNzgzMzI2LDIyLjk0MzQ5MSA4LjQ5OTk4NzE0LDIyLjYyOTY5NTggOC40OTk5ODcxNCwyMi4yNSBDOC40OTk5ODcxNCwyMS44NzAzMDQyIDguMjE3ODMzMjYsMjEuNTU2NTA5IDcuODUxNzU3NywyMS41MDY4NDY2IEw3Ljc0OTk4NzE0LDIxLjUgWiBNMjMuNzUyNjE5MiwyIEMyNC45NDM0ODMyLDIgMjUuOTE4MjY0MiwyLjkyNTE2MTU5IDI1Ljk5NzQyODQsNC4wOTU5NTExOSBMMjYuMDAyNjE5Miw0LjI1IEwyNi4wMDI2MTkyLDE1LjUgQzI2LjAwMjYxOTIsMTYuNjkwODY0IDI1LjA3NzQ1NzcsMTcuNjY1NjQ0OSAyMy45MDY2NjgxLDE3Ljc0NDgwOTIgTDIzLjc1MjYxOTIsMTcuNzUgTDE4Ljk5OCwxNy43NSBMMTguOTk4LDIwLjUgTDIwLjI1LDIwLjUgQzIwLjY2NDIxMzYsMjAuNSAyMSwyMC44MzU3ODY0IDIxLDIxLjI1IEMyMSwyMS42Mjk2OTU4IDIwLjcxNzg0NjEsMjEuOTQzNDkxIDIwLjM1MTc3MDYsMjEuOTkzMTUzNCBMMjAuMjUsMjIgTDEzLDIyIEwxMywyMC41IEwxNy40OTgsMjAuNSBMMTcuNDk4LDE3Ljc1IEwxMywxNy43NSBMMTMsMTEuNSBDMTMsMTAuMTc0NTE2NiAxMS45Njg0NjQxLDkuMDg5OTYxMzMgMTAuNjY0Mzc1Nyw5LjAwNTMxNzY4IEwxMC41LDkgTDUsOSBMNSw0LjI1IEM1LDMuMDU5MTM2MDEgNS45MjUxNjE1OSwyLjA4NDM1NTA4IDcuMDk1OTUxMTksMi4wMDUxOTA4MSBMNy4yNSwyIEwyMy43NTI2MTkyLDIgWiIgaWQ9IvCfjqgtQ29sb3IiPjwvcGF0aD4KICAgICAgICA8L2c+CiAgICA8L2c+Cjwvc3ZnPg==)
+![HTML](https://img.shields.io/badge/HTML-E34F26?style=flat&logo=html5&logoColor=white)
+![CSS](https://img.shields.io/badge/CSS-1572B6?style=flat&logo=css3&logoColor=white)
+![JS](https://img.shields.io/badge/JS-gray?style=flat-square&logo=javascript&logoColor=white)
+<!-- ![React]() -->
+
+![backend: ](https://img.shields.io/badge/backend-white?style=flat&logo=data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IgoJIHZpZXdCb3g9IjAgMCAyOTcuMDAxIDI5Ny4wMDEiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDI5Ny4wMDEgMjk3LjAwMTsiIHhtbDpzcGFjZT0icHJlc2VydmUiPgo8Zz4KCTxnPgoJCTxwYXRoIGQ9Ik0yMjcuMjg5LDEwNi4wMjJjLTIuMzAzLDAtNC42MiwwLjExNy02LjkzMSwwLjM0OWMtOC43NDYtMzIuMTIxLTM4LjAwMS01NC44MTYtNzEuODU4LTU0LjgxNgoJCQlTODUuMzg4LDc0LjI1LDc2LjY0MiwxMDYuMzcxYy0yLjMxMS0wLjIzMi00LjYyOC0wLjM0OS02LjkzMS0wLjM0OUMzMS4yNzIsMTA2LjAyMiwwLDEzNy4yOTQsMCwxNzUuNzMzCgkJCWMwLDM4LjQzOSwzMS4yNzIsNjkuNzEyLDY5LjcxMSw2OS43MTJIMjI3LjI5YzM4LjQzOSwwLDY5LjcxMS0zMS4yNzMsNjkuNzExLTY5LjcxMgoJCQlDMjk3LjAwMSwxMzcuMjk0LDI2NS43MjgsMTA2LjAyMiwyMjcuMjg5LDEwNi4wMjJ6Ii8+Cgk8L2c+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+PC9nPjwvc3ZnPg==)
+![Django](https://img.shields.io/badge/Django-092E20?style=flat&logo=django&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-black?style=flat&logo=flask&logoColor=white)
+
+![database: ](https://img.shields.io/badge/database-white?style=flat&logo=data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJDYXBhXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IgoJIHdpZHRoPSI5NS4xcHgiIGhlaWdodD0iOTUuMXB4IiB2aWV3Qm94PSIwIDAgOTUuMSA5NS4xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA5NS4xIDk1LjE7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPGc+Cgk8ZyBpZD0iTGF5ZXJfMV8xNF8iPgoJCTxnPgoJCQk8Zz4KCQkJCTxnPgoJCQkJCTxwYXRoIGQ9Ik00Ny42LDYuM2MtMTguOCwwLTM0LDUuNi0zNCwxMi40djEwLjJjMCw2LjksMTUuMiwxMi40LDM0LDEyLjRjMTguOCwwLDM0LTUuNiwzNC0xMi40VjE4LjcKCQkJCQkJQzgxLjYsMTEuOCw2Ni4zLDYuMyw0Ny42LDYuM3oiLz4KCQkJCTwvZz4KCQkJPC9nPgoJCQk8Zz4KCQkJCTxnPgoJCQkJCTxwYXRoIGQ9Ik00Ny42LDQ3LjJjLTE3LjksMC0zMi43LTUuMS0zNC0xMS41Yy0wLjEsMC4zLDAsMTYuOCwwLDE2LjhjMCw2LjksMTUuMiwxMi40LDM0LDEyLjRjMTguOCwwLDM0LTUuNiwzNC0xMi40CgkJCQkJCWMwLDAsMC0xNi41LDAtMTYuOEM4MC4zLDQyLjEsNjUuNSw0Ny4yLDQ3LjYsNDcuMnoiLz4KCQkJCTwvZz4KCQkJPC9nPgoJCQk8cGF0aCBkPSJNODEuNSw1OS42Yy0xLjMsNi40LTE2LDExLjUtMzQsMTEuNXMtMzIuNy01LjEtMzQtMTEuNWwwLDE2LjhjMCw2LjksMTUuMiwxMi40LDM0LDEyLjRjMTguOCwwLDM0LTUuNiwzNC0xMi40TDgxLjUsNTkuNgoJCQkJeiIvPgoJCTwvZz4KCTwvZz4KPC9nPgo8L3N2Zz4KCg==)
+![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=flat&logo=mongodb&logoColor=white)
+![Access](https://img.shields.io/badge/Access-A4373A?style=flat&logo=microsoftaccess&logoColor=white)
+
+![distribution: ](https://img.shields.io/badge/distribution-white?style=flat&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjU2cHgiIGhlaWdodD0iMjU2cHgiIHZpZXdCb3g9IjAgMCAyNTYgMjU2IiBpZD0iRmxhdCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cGF0aCBkPSJNMjIzLjE1NTI3LDY4LjQyMTg4bC0xNi0zMkE3Ljk5OTY3LDcuOTk5NjcsMCwwLDAsMjAwLDMySDU2YTcuOTk5NjcsNy45OTk2NywwLDAsMC03LjE1NTI3LDQuNDIxODhsLTE2LDMyQTcuOTk5MzQsNy45OTkzNCwwLDAsMCwzMiw3MlYyMDhhMTYuMDE4MzMsMTYuMDE4MzMsMCwwLDAsMTYsMTZIMjA4YTE2LjAxODMzLDE2LjAxODMzLDAsMCwwLDE2LTE2VjcyQTcuOTk5MzQsNy45OTkzNCwwLDAsMCwyMjMuMTU1MjcsNjguNDIxODhabS01NS41NTcxMyw4Ny4yOTM5NC0zMy45NDA5MSwzMy45NDE0MWMtLjA1NDIuMDU0Mi0uMTE0MjYuMTAxMDctLjE2OTQ0LjE1MzMyLS4xMzMzLjEyNi0uMjY2MTEuMjUyNDQtLjQwODIuMzY5MTQtLjA2Njg5LjA1NTE3LS4xMzg2Ny4xMDI1NC0uMjA3LjE1NTI3LS4xMzkxNi4xMDY5My0uMjc2ODYuMjE0ODQtLjQyMjg1LjMxMy0uMDU2MTYuMDM3Ni0uMTE2MjEuMDY4ODUtLjE3MzM0LjEwNS0uMTYzNTguMTA0LS4zMjgxMy4yMDctLjQ5OTUxLjI5ODgzLS4wNDI0OC4wMjMtLjA4NjkyLjA0MS0uMTI5ODkuMDYyNS0uMTg5NDUuMDk3NjUtLjM4MTM1LjE5MTQtLjU3OTU5LjI3MzkyLS4wMjgzMi4wMTIyMS0uMDU4NTkuMDIwNTEtLjA4NzQuMDMyMjMtLjIxMjQuMDg1NDUtLjQyNzI1LjE2NDU1LS42NDg0NC4yMzE5My0uMDI5MjkuMDA5MjgtLjA1OTU3LjAxNDY1LS4wODg4Ni4wMjI5NS0uMjE5NzMuMDY0LS40NDE0MS4xMjI1Ni0uNjY4LjE2OC0uMDY1NDMuMDEzMTktLjEzMjgyLjAxODU2LS4xOTg3My4wMzAyOC0uMTkwOTIuMDMzMi0uMzgxODQuMDY2ODktLjU3NzE1LjA4NTkzYTcuODkyNTcsNy44OTI1NywwLDAsMS0xLjU5NzY2LDBjLS4xOTUzMS0uMDE5LS4zODYyMy0uMDUyNzMtLjU3NzE1LS4wODU5My0uMDY1OTEtLjAxMTcyLS4xMzMzLS4wMTcwOS0uMTk4NzMtLjAzMDI4LS4yMjY1Ni0uMDQ1NDEtLjQ0ODI0LS4xMDQtLjY2OC0uMTY4LS4wMjkyOS0uMDA4My0uMDU5NTctLjAxMzY3LS4wODg4Ni0uMDIyOTUtLjIyMTY4LS4wNjczOC0uNDM4LS4xNDc0Ni0uNjUwODgtLjIzMjkxLS4wMjc4My0uMDExMjMtLjA1NzEzLS4wMTk1My0uMDg1LS4wMzEyNS0uMTk4MjQtLjA4MjUyLS4zOTAxNC0uMTc2MjctLjU4MDA4LS4yNzM5Mi0uMDQyNDgtLjAyMi0uMDg2OTItLjAzOTU1LS4xMjk0LS4wNjI1LS4xNzEzOC0uMDkxOC0uMzM1OTMtLjE5NDgzLS40OTk1MS0uMjk4ODMtLjA1NzEzLS4wMzYxMy0uMTE3MTgtLjA2NzM4LS4xNzMzNC0uMTA1LS4xNDYtLjA5ODE1LS4yODM2OS0uMjA2MDYtLjQyMjg1LS4zMTMtLjA2ODM2LS4wNTI3My0uMTQwMTQtLjEwMDEtLjIwNy0uMTU1MjctLjEzODE4LS4xMTMyOC0uMjY3MDktLjIzNzMxLS4zOTc0Ni0uMzU5MzgtLjA1OTA4LS4wNTU2Ni0uMTIyNTYtLjEwNTQ3LS4xODAxOC0uMTYzMDhMODguNDAxODYsMTU1LjcxNTgyYTguMDAwMzUsOC4wMDAzNSwwLDAsMSwxMS4zMTQtMTEuMzE0NDVMMTIwLDE2NC42ODZWMTA0YTgsOCwwLDAsMSwxNiwwdjYwLjY4NmwyMC4yODQxOC0yMC4yODQ2N2E4LjAwMDM1LDguMDAwMzUsMCwwLDEsMTEuMzE0LDExLjMxNDQ1Wk01Mi45NDQzNCw2NGw4LTE2SDE5NS4wNTU2Nmw4LDE2WiIvPgo8L3N2Zz4KCg==)
+![CMake](https://img.shields.io/badge/CMake-064F8C?style=flat&logo=cmake&logoColor=white)
 <!--
-**2trvl/2trvl** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
-
-Here are some ideas to get you started:
-
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
+![PKGBUILD]()
+![setuptools]()
+![Docker]()
 -->
+
+![environment: ](https://img.shields.io/badge/environment-white?style=flat&logo=data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBzdGFuZGFsb25lPSJubyI/Pgo8c3ZnIHdpZHRoPSIxMDI0cHgiIGhlaWdodD0iMTAyNHB4IiB2aWV3Qm94PSIwIDAgMTAyNCAxMDI0IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGNsYXNzPSJpY29uIj4KICA8cGF0aCBkPSJNODgwIDExMkgxNDRjLTE3LjcgMC0zMiAxNC4zLTMyIDMydjczNmMwIDE3LjcgMTQuMyAzMiAzMiAzMmg3MzZjMTcuNyAwIDMyLTE0LjMgMzItMzJWMTQ0YzAtMTcuNy0xNC4zLTMyLTMyLTMyek01MTMuMSA1MTguMWwtMTkyIDE2MWMtNS4yIDQuNC0xMy4xLjctMTMuMS02LjF2LTYyLjdjMC0yLjMgMS4xLTQuNiAyLjktNi4xTDQyMC43IDUxMmwtMTA5LjgtOTIuMmE3LjYzIDcuNjMgMCAwIDEtMi45LTYuMVYzNTFjMC02LjggNy45LTEwLjUgMTMuMS02LjFsMTkyIDE2MC45YzMuOSAzLjIgMy45IDkuMSAwIDEyLjN6TTcxNiA2NzNjMCA0LjQtMy40IDgtNy41IDhoLTE4NWMtNC4xIDAtNy41LTMuNi03LjUtOHYtNDhjMC00LjQgMy40LTggNy41LThoMTg1YzQuMSAwIDcuNSAzLjYgNy41IDh2NDh6Ii8+Cjwvc3ZnPg==)
+![Arch Linux](https://img.shields.io/badge/Arch_Linux-1793D1?style=flat&logo=archlinux&logoColor=white)
+![Debian](https://img.shields.io/badge/Debian-A81D33?style=flat&logo=debian&logoColor=white)
+![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat&logo=windows&logoColor=white)
+
+## Projects
+* [`clab (C#)`](https://github.com/2trvl/clab) – Group chat in local network. UDP signals (networking of devices), sending messages and files over TCP, dynamic JSON realization.
+* [`shterens-tools (Python)`](https://github.com/2trvl/shterens-tools) – Useful tools for Telegram channels. MTProto & BotAPI, Nginx reverse proxy, ngrok, MongoDB, i18n localization, custom multiprocessing library and other modules.
+* [`xamalk (C)`](https://github.com/2trvl/xamalk) – Cross-platform terminal user interface library. System terminal APIs (Windows VT & ANSI, Linux / BSD, OS X), CMake build, Python library wrapper with ctypes.
+<!-- net-scan and mitama -->
+
+## Contact Me
+[![Telegram: @shteren](https://img.shields.io/badge/Telegram-blue?style=for-the-badge&logo=telegram&logoColor=white)](https://shteren.t.me)
+[![Email: dank.txt@gmail.com](https://img.shields.io/badge/Email-ededed?style=for-the-badge&logo=data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IgoJIHZpZXdCb3g9IjAgMCAzMzAuMDAxIDMzMC4wMDEiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDMzMC4wMDEgMzMwLjAwMTsiIHhtbDpzcGFjZT0icHJlc2VydmUiPgo8ZyBpZD0iWE1MSURfMzQ4XyI+Cgk8cGF0aCBpZD0iWE1MSURfMzUwXyIgZD0iTTE3My44NzEsMTc3LjA5N2MtMi42NDEsMS45MzYtNS43NTYsMi45MDMtOC44NywyLjkwM2MtMy4xMTYsMC02LjIzLTAuOTY3LTguODcxLTIuOTAzTDMwLDg0LjYwMgoJCUwwLjAwMSw2Mi42MDNMMCwyNzUuMDAxYzAuMDAxLDguMjg0LDYuNzE2LDE1LDE1LDE1TDMxNS4wMDEsMjkwYzguMjg1LDAsMTUtNi43MTYsMTUtMTQuOTk5VjYyLjYwMmwtMzAuMDAxLDIyTDE3My44NzEsMTc3LjA5N3oiCgkJLz4KCTxwb2x5Z29uIGlkPSJYTUxJRF8zNTFfIiBwb2ludHM9IjE2NS4wMDEsMTQ2LjQgMzEwLjA4Nyw0MC4wMDEgMTkuOTExLDQwIAkiLz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8L3N2Zz4KCg==)](mailto:dank.txt@gmail.com)
+
+## 
+
+<br>
+<div align="center">
+    <img alt="Profile Views" src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/2trvl/&count_bg=%234691CF&title_bg=%23555555&icon=markdown.svg&icon_color=%23E7E7E7&title=Profile+Views&edge_flat=false"/>
+</div>

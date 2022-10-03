@@ -55,7 +55,7 @@
 ![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat&logo=windows&logoColor=white)
 
 ## Projects
-* [`clab (C#)`](https://github.com/2trvl/clab) – Group chat in local network. UDP signals (networking of devices), sending messages and files over TCP, dynamic JSON realization.
+* [`clab (C#)`](https://github.com/2trvl/clab) – Group chat in local network. UDP signals (networking of devices), sending messages and files over TCP, dynamic JSON implementation.
 * [`shterens-tools (Python)`](https://github.com/2trvl/shterens-tools) – Useful tools for Telegram channels. MTProto & BotAPI, Nginx reverse proxy, ngrok, MongoDB, i18n localization, custom multiprocessing library and other modules.
 * [`xamalk (C)`](https://github.com/2trvl/xamalk) – Cross-platform terminal user interface library. System terminal APIs (Windows VT & ANSI, Linux / BSD, OS X), CMake build, Python library wrapper with ctypes.
 <!-- net-scan and mitama -->

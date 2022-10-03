@@ -1,7 +1,21 @@
 #!/usr/bin/env python3
+
+'''
+This file is part of 2trvl/2trvl
+Personal repository with scripts and configs
+Which is released under MIT License
+Copyright (c) 2022 2trvl
+---------------------------------------------
+             Vk Album Downloader               
+---------------------------------------------
+Downloads albums of the specified person or
+group in VK. Saves photos at the best
+resolution and writes a description 
+to the metadata
+
+'''
 import os
 import math
-import typing
 import vk_api
 import pyexiv2
 from urllib.parse import urlparse
@@ -16,7 +30,7 @@ PASSWORD = ""
 #  Albums owner
 OWNER_ID = ""
 #  If empty all will be downloaded
-ALBUMS_ID: typing.List[int] = []
+ALBUMS_ID: list[int] = []
 
 
 #---------------------------

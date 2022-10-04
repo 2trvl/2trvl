@@ -4,7 +4,7 @@
 This file is part of 2trvl/2trvl
 Personal repository with scripts and configs
 Which is released under MIT License
-Copyright (c) 2022 2trvl
+Copyright (c) 2022 Andrew Shteren
 ---------------------------------------------
           Backup comparison utility          
 ---------------------------------------------

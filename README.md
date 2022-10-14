@@ -58,6 +58,7 @@
 * [`clab (C#)`](https://github.com/2trvl/clab) – Group chat in local network. UDP signals (networking of devices), sending messages and files over TCP, dynamic JSON implementation.
 * [`shterens-tools (Python)`](https://github.com/2trvl/shterens-tools) – Useful tools for Telegram channels. MTProto & BotAPI, Nginx reverse proxy, ngrok, MongoDB, i18n localization, custom multiprocessing library and other modules.
 * [`xamalk (C)`](https://github.com/2trvl/xamalk) – Cross-platform terminal user interface library. System terminal APIs (Windows VT & ANSI, Linux / BSD, OS X), CMake build, Python library wrapper with ctypes.
+* [`2trvl (Python)`](https://github.com/2trvl/2trvl) – This resume, my scripts and configs. Backup comparison utility, VK album downloader.
 <!-- net-scan and mitama -->
 
 ## Contact Me

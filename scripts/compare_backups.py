@@ -559,7 +559,7 @@ class ZipFile(zipfile.ZipFile):
         '''
         filenames = []
         for filename in filename.split(b"/"):
-            _, filename = self.guess_encoding(filename)
+            __, filename = self.guess_encoding(filename)
             filenames.append(filename)
         
         filename = "/".join(filenames)
@@ -976,13 +976,23 @@ def get_storage_drives() -> list[str]:
     return drives
 
 
-def compare_backups():
+def compare_backups(path: str=None):
     '''
     Detects backups on connected drives and
     compares them with the current state located
     at BACKUP_DESTINATION
+
+    Args:
+        path (str, optional): Path of backup to
+        compare with DEFAULT_DESTINATION. Disables
+        auto discovery. Defaults to None
     '''
-    drives = get_storage_drives()
+    if path:
+        path, BACKUP_FILENAME = os.path.split(path)
+        drives = [ path ]
+    else:
+        drives = get_storage_drives()
+    
     report = open(REPORT_FILEPATH, "w")
     backupFilename = os.path.splitext(BACKUP_FILENAME)
 

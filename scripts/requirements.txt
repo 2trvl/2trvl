@@ -2,5 +2,5 @@
 vk_api==11.9.9
 pyexiv2==2.8.0
 
-# compare_backups
+# archiver, compare_backups
 charset_normalizer==2.0.12

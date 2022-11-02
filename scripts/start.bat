@@ -1,10 +1,15 @@
 : # Cross-platform way to run python in virtual environment
 : # Just use it like this:
-: # start.bat compare_backups.py
+: # start.bat archiver.py args
 : # Or any other python script in the folder
+: # https://stackoverflow.com/q/17510688
+
+:; export USE_DMENU="False"
 
 :<<"::Batch"
     @echo off
+
+    set USE_DMENU=False
 
     set filepath=%~dp0
 
@@ -23,7 +28,9 @@
         if not exist %filepath%%~1 (
             echo No script named "%1"
         ) else (
-            python %filepath%%~1
+            set args=%*
+            call set args=%%args:*%1=%%
+            python %filepath%%~1 %args%
         )
     )
 
@@ -48,7 +55,7 @@ if [ -z "$1" ]; then
 elif [ ! -f "$filepath/$1" ]; then
     echo "No script named \"$1\""
 else
-    python $filepath/$1
+    python $filepath/$1 "${@:2}"
 fi
 
 deactivate

@@ -6,7 +6,7 @@ Personal repository with scripts and configs
 Which is released under MIT License
 Copyright (c) 2022 Andrew Shteren
 ---------------------------------------------
-             Vk Album Downloader               
+             Vk Album Downloader             
 ---------------------------------------------
 Downloads albums of the specified person or
 group in VK. Saves photos at the best
@@ -19,6 +19,9 @@ import sys
 import math
 import vk_api
 import pyexiv2
+
+from menus import show_menu
+from archiver import charsForbidden
 
 from urllib.parse import urlparse
 from urllib.request import urlretrieve
@@ -39,7 +42,7 @@ DOWNLOAD_PATH = ""
 
 
 #---------------------------
-#    Vk Album Downloader     
+#    Vk Album Downloader    
 #---------------------------
 vkSession = vk_api.VkApi(EMAIL, PASSWORD)
 vkSession.auth()
@@ -70,17 +73,11 @@ except vk_api.exceptions.ApiError as ApiError:
 #  Albums selection mode
 if ALBUMS_ID is None:
     ALBUMS_ID = []
-    for index, album in enumerate(albums["items"]):
-        print(f"{index}. {album['title']}")
-    selection = input("\nEnter album numbers to download (0,1,2,0-2): ")
-    selection = selection.split(",")
-    for slice in selection:
-        if slice.isnumeric():
-            ALBUMS_ID.append(albums["items"][int(slice)]["id"])
-        else:
-            slice = slice.split("-")
-            for index in range(int(slice[0]), int(slice[1]) + 1):
-                ALBUMS_ID.append(albums["items"][index]["id"])
+    for index in show_menu(
+        "Enter album numbers to download",
+        [ album["title"] for album in albums["items"] ]
+    ):
+        ALBUMS_ID.append(albums["items"][index]["id"])
 
 if ALBUMS_ID:
     album = 0
@@ -109,20 +106,6 @@ else:
 ownerName = f"{OWNER_ID} {ownerName}"
 os.makedirs(ownerName, exist_ok=True)
 os.chdir(ownerName)
-
-#  Characters not allowed in folder names
-charsForbidden = {
-    "<":  "",
-    ">":  "",
-    ":":  "",
-    "\"": "",
-    "/":  "",
-    "\\": "",
-    "|":  "",
-    "?":  "",
-    "*":  ""
-}
-charsForbidden = str.maketrans(charsForbidden)
 
 for album in albums:
     print(f"Downloading \"{album['title']}\" {album['size']} photos")

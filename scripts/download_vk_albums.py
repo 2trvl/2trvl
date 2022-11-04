@@ -21,10 +21,9 @@ import vk_api
 import pyexiv2
 
 from menus import show_menu
-from archiver import charsForbidden
+from common import urlretrieve, charsForbidden
 
 from urllib.parse import urlparse
-from urllib.request import urlretrieve
 
 #----------------------
 #    Your Data Here    

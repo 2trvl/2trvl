@@ -25,20 +25,6 @@ from typing import IO
 if os.name == "nt":
     import ctypes
 
-#  Characters not allowed in file names
-charsForbidden = {
-    "<":  "",
-    ">":  "",
-    ":":  "",
-    "\"": "",
-    "/":  "",
-    "\\": "",
-    "|":  "",
-    "?":  "",
-    "*":  ""
-}
-charsForbidden = str.maketrans(charsForbidden)
-
 
 class ProgressBar():
     

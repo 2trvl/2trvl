@@ -13,17 +13,21 @@ APIs, just parsing a web page
 
 '''
 import os
+import sys
 import math
 import json
 
 from menus import show_menu
-from archiver import charsForbidden
-from urllib.request import urlopen, urlretrieve
+from common import (
+    urlopen,
+    urlretrieve,
+    charsForbidden
+)
 
 #----------------------
 #    Your Data Here    
 #----------------------
-VIDEO_URL = ""
+VIDEO_URL = "https://youtu.be/dJdihJZ-AzI"
 #  Where to download videos
 #  Leave empty to use the current directory
 DOWNLOAD_PATH = ""
@@ -89,6 +93,9 @@ audios = {}
 for source in videoData["streamingData"]["adaptiveFormats"]:
 
     #  Fix: recently uploaded videos and streams
+    if not "url" in source:
+        continue
+    
     if "contentLength" in source:
         sourceSize = [ int(source["contentLength"]) ]
         sourceSize.append(int(math.log(sourceSize[0], 1024)))
@@ -133,6 +140,10 @@ for source in videoData["streamingData"]["adaptiveFormats"]:
 
 #  Choose sources to download
 #  Only one video and audio
+if not videos:
+    print("No video with supported format and MIME type found.")
+    sys.exit(0)
+
 video = show_menu(
     "Choose video to download",
     videos.keys()
@@ -167,7 +178,11 @@ audioFilename = "{} {}.{}".format(
 )
 
 print(audioFilename)
-urlretrieve(audio[0], audioFilename)
+urlretrieve(
+    url=audio[0],
+    filename=audioFilename,
+    blockSize=100*1024
+)
 
 #  Video
 searchSlice[0] = video[2].find(" ")
@@ -179,7 +194,11 @@ videoFilename = "{} {}.{}".format(
 )
 
 print(videoFilename)
-urlretrieve(video[0], videoFilename)
+urlretrieve(
+    url=video[0],
+    filename=videoFilename,
+    blockSize=100*1024
+)
 
 #  Merge with ffmpeg
 os.system("ffmpeg -i \"{}\" -i \"{}\" -shortest \"{}.{}\"".format(

@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 '''
 This file is part of 2trvl/2trvl
 Personal repository with scripts and configs

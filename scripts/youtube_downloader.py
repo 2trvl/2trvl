@@ -18,16 +18,18 @@ import math
 import json
 
 from menus import show_menu
-from common import (
+from common import charsForbidden
+
+from urllib.request import (
+    Request,
     urlopen,
-    urlretrieve,
-    charsForbidden
+    urlretrieve
 )
 
 #----------------------
 #    Your Data Here    
 #----------------------
-VIDEO_URL = "https://youtu.be/dJdihJZ-AzI"
+VIDEO_URL = ""
 #  Where to download videos
 #  Leave empty to use the current directory
 DOWNLOAD_PATH = ""
@@ -38,6 +40,10 @@ CLEAN_SOURCES = True
 #--------------------------
 #    YouTube Downloader    
 #--------------------------
+VIDEO_URL = Request(
+    url=VIDEO_URL,
+    headers={}
+)
 webPage = urlopen(VIDEO_URL)
 webPage = webPage.read().decode()
 
@@ -80,8 +86,11 @@ videoData = {}
 for script in scripts:
 
     if "videoplayback" in script:
-        searchSlice[0] = script.find("=") + 1
-        script = script[searchSlice[0]:]
+        searchSlice[0] = script.find("=") + 2
+        searchSlice[1] = script.find("};")
+        if searchSlice[1] != -1:
+            searchSlice[1] += 2
+        script = script[searchSlice[0]:searchSlice[1]]
         script = script.replace(";", "")
         videoData = json.loads(script)
         break
@@ -178,11 +187,7 @@ audioFilename = "{} {}.{}".format(
 )
 
 print(audioFilename)
-urlretrieve(
-    url=audio[0],
-    filename=audioFilename,
-    blockSize=100*1024
-)
+urlretrieve(audio[0], audioFilename)
 
 #  Video
 searchSlice[0] = video[2].find(" ")
@@ -194,11 +199,7 @@ videoFilename = "{} {}.{}".format(
 )
 
 print(videoFilename)
-urlretrieve(
-    url=video[0],
-    filename=videoFilename,
-    blockSize=100*1024
-)
+urlretrieve(video[0], videoFilename)
 
 #  Merge with ffmpeg
 os.system("ffmpeg -i \"{}\" -i \"{}\" -shortest \"{}.{}\"".format(

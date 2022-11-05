@@ -10,6 +10,9 @@ Code that cannot be attributed to anything in
 particular and is used in several scripts
 
 '''
+import os
+import platform
+import functools
 
 #  Characters not allowed in file names
 charsForbidden = {
@@ -24,3 +27,18 @@ charsForbidden = {
     "*":  ""
 }
 charsForbidden = str.maketrans(charsForbidden)
+
+
+@functools.cache
+def WINDOWS_VT_MODE() -> bool:
+    '''
+    Determines if ANSI escape codes
+    are available or Windows API needed
+    '''
+    if os.name == "nt":
+        version = platform.win32_ver()[1]
+        version = tuple(int(num) for num in version.split("."))
+        if version < (10, 0, 10586):
+            return True
+
+    return False

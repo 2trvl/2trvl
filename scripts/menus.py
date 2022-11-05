@@ -12,7 +12,9 @@ Creates a options menu in a terminal or dmenu
 '''
 import os
 
-if os.name == "nt":
+from common import WINDOWS_VT_MODE
+
+if WINDOWS_VT_MODE:
     import ctypes
     from ctypes import wintypes
 
@@ -58,7 +60,7 @@ def parse_selection(selection: str) -> set[int]:
     return indexes
 
 
-if os.name == "nt":
+if WINDOWS_VT_MODE:
 
     STD_OUTPUT_HANDLE = -11
 
@@ -86,7 +88,7 @@ def clear_terminal(rows: int) -> bool:
         bool: If function succeeds, the
         return value is True
     '''
-    if os.name == "posix":
+    if not WINDOWS_VT_MODE:
         print(f"\033[{rows}A \033[0J")
         return True
     

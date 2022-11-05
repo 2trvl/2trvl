@@ -14,7 +14,6 @@ names and symbolic links with progress bar
 So far only supports .zip
 
 '''
-import os
 import time
 import zipfile
 import multiprocessing
@@ -22,7 +21,9 @@ import charset_normalizer
 
 from typing import IO
 
-if os.name == "nt":
+from common import WINDOWS_VT_MODE
+
+if WINDOWS_VT_MODE:
     import ctypes
 
 
@@ -108,7 +109,7 @@ class ProgressBar():
             )
             return False
 
-    if os.name == "nt":
+    if WINDOWS_VT_MODE:
         class CONSOLE_CURSOR_INFO(ctypes.Structure):
             '''
             Structure CONSOLE_CURSOR_INFO from WinCon.h
@@ -126,9 +127,10 @@ class ProgressBar():
             visibility (bool): Visibility of cursor.
             True to show, False to hide.
         '''
-        if os.name == "posix":
+        if not WINDOWS_VT_MODE:
             ESC_CODE = self.ESC_SHOW_CURSOR if visibility else self.ESC_HIDE_CURSOR
             print(ESC_CODE, end="\r", flush=True)
+            return
 
         hConsoleOutput = ctypes.windll.kernel32.GetStdHandle(self.STD_OUTPUT_HANDLE)
         lpConsoleCursorInfo = self.CONSOLE_CURSOR_INFO()

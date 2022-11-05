@@ -21,6 +21,7 @@ import multiprocessing
 
 from typing import IO
 from itertools import filterfalse
+
 from archiver import ProgressBar, ZipFile
 
 if os.name == "nt":

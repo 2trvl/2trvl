@@ -46,17 +46,17 @@ with yt_dlp.YoutubeDL(ydl_opts) as ydl:
     sources = {}
     
     for source in videoInfo["formats"][::-1]:
-        if "asr" in source:
-            sourceFormatted = str(source["format_id"])
+        sourceFormatted = str(source["format_id"])
+        
+        #  YouTube specific
+        if "asr" in source and source["asr"] is None and VIDEO_WITH_SOUND:
+            sourceFormatted += "+ba"
 
-            if source["asr"] is None and VIDEO_WITH_SOUND:
-                sourceFormatted += "+ba"
-
-            sources["[ {} ] [ {} ] [ {} ]".format(
-                source["format_note"],
-                source["ext"],
-                yt_dlp.utils.format_bytes(source["filesize"])
-            )] = sourceFormatted
+        sources["[ {} ] [ {} ] [ {} ]".format(
+            source["format"].split(" - ")[1],
+            source["ext"],
+            yt_dlp.utils.format_bytes(source.get("filesize", None))
+        )] = sourceFormatted
 
     indexes = show_menu(
         "Choose sources to download",

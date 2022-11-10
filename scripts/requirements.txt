@@ -5,5 +5,6 @@ pyexiv2==2.8.0
 # archiver, compare_backups
 charset_normalizer==2.0.12
 
-# video_downloader, also install ffmpeg
+# video_downloader, stream_recorder
+# also install ffmpeg
 yt-dlp==2022.10.4

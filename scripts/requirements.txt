@@ -1,3 +1,5 @@
+# created with python 3.10.4
+
 # download_vk_albums
 vk_api==11.9.9
 pyexiv2==2.8.0

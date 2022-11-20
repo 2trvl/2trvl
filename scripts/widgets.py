@@ -4,28 +4,34 @@ Personal repository with scripts and configs
 Which is released under MIT License
 Copyright (c) 2022 Andrew Shteren
 ---------------------------------------------
-          Options Menus For Scripts          
+             Widgets For Scripts             
 ---------------------------------------------
-Creates a options menu in a terminal or dmenu
-(supported by dmenu, rofi..)
+Creates a options menu, dialog or input in a
+terminal or dmenu (supported by dmenu, rofi)
 
 '''
 import os
 
+from typing import TypeVar
 from common import WINDOWS_VT_MODE
 
 if WINDOWS_VT_MODE:
     import ctypes
     from ctypes import wintypes
 
+T = TypeVar('T')
 USE_DMENU = os.environ.get("USE_DMENU", "False") == "True"
 
 
-def show_terminal_menu(prompt: str, items: list[str]) -> set[int]:
+def show_terminal_menu(
+    prompt: str,
+    items: list[str],
+    indentSize: int=2
+) -> set[int]:
     print(f"{prompt} (0,1,2,0-2):")
     
     for index, item in enumerate(items):
-        print(f"{index}. {item}")
+        print(f"{' ' * indentSize}{index}. {item}")
     
     selection = input("> ")
     return parse_selection(selection)
@@ -58,6 +64,45 @@ def parse_selection(selection: str) -> set[int]:
             indexes.update(range(int(slice[0]), int(slice[1]) + 1))
 
     return indexes
+
+
+def show_terminal_dialog(question: str) -> bool | None:
+    answer = input(f":: {question}? [Y/n] ")
+    return parse_answer(answer)
+
+
+def show_dmenu_dialog(question: str) -> bool | None:
+    return False
+
+
+def parse_answer(value: str) -> bool | None:
+    '''
+    Parses dialog answer
+
+    Args:
+        value (str): User answer
+
+    Returns:
+        bool | None: If is positive returns True,
+        if not False, if the answer is not clear None
+    '''
+    value = value.lower()
+
+    if value in ["yes", "y", "да"]:
+        return True
+
+    elif value in ["no", "n", "нет"]:
+        return False
+
+    return None
+
+
+def show_terminal_input(prompt: str, valueType: T) -> T:
+    return valueType(input(f"{prompt}:\n> "))
+
+
+def show_dmenu_input(prompt: str, valueType: T) -> T:
+    return valueType()
 
 
 if WINDOWS_VT_MODE:
@@ -144,3 +189,51 @@ def show_menu(prompt: str, items: list[str]) -> set[int]:
         except ValueError:
             if not USE_DMENU:
                 clear_terminal(2 + len(items))
+
+
+def show_dialog(question: str) -> bool:
+    '''
+    Displays a dialog based on the USE_DMENU
+    environment variable
+
+    Args:
+        question (str): Closed-ended question
+
+    Returns:
+        bool: True for positive and False for
+        negative answer
+    '''
+    while True:
+        if USE_DMENU:
+            answer = show_dmenu_dialog(question)
+            if answer is None:
+                continue
+        else:
+            answer = show_terminal_dialog(question)
+            if answer is None:
+                clear_terminal(1)
+                continue
+        
+        return answer
+
+
+def show_input(prompt: str, valueType: T) -> T:
+    '''
+    Displays an input based on the USE_DMENU
+    environment variable
+
+    Args:
+        prompt (str): Input message or CTA
+        valueType (T): The type of value to return
+
+    Returns:
+        T: Value of valueType
+    '''
+    while True:
+        try:
+            if USE_DMENU:
+                return show_dmenu_input(prompt, valueType)
+            return show_terminal_input(prompt, valueType)
+        except ValueError:
+            if not USE_DMENU:
+                clear_terminal(2)

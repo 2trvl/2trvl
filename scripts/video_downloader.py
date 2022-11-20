@@ -16,7 +16,7 @@ with additional features and fixes
 import os
 import yt_dlp
 
-from menus import show_menu
+from widgets import show_menu
 
 #----------------------
 #    Your Data Here    

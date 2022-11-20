@@ -20,7 +20,7 @@ import math
 import vk_api
 import pyexiv2
 
-from menus import show_menu
+from widgets import show_menu
 from common import charsForbidden
 
 from urllib.parse import urlparse

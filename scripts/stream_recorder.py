@@ -32,23 +32,19 @@ DOWNLOAD_PATH = ""
 if DOWNLOAD_PATH:
     os.chdir(DOWNLOAD_PATH)
 
-YoutubeIE = yt_dlp.extractor.get_info_extractor("Youtube")
-
-if YoutubeIE.suitable(STREAM_URL):
-
+try:
     ydl_opts = {
         "quiet": True,
         "no_color": True,
         "noplaylist": True,
         "live_from_start": True,
-        "wait_for_video": (0, 60),
-        "ignoreerrors": "only_download"
+        "wait_for_video": (0, 60)
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.extract_info(STREAM_URL)
 
-else:
+except yt_dlp.utils.DownloadError:
     from datetime import datetime
 
     filename = datetime.now()

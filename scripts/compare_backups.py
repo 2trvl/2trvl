@@ -532,14 +532,14 @@ def print_files(title: str, files: list[str], output: IO):
             print(f"    {file}", file=output, flush=True)
 
 
-def get_storage_drives() -> list[str]:
+def get_storage_drives() -> set[str]:
     '''
     Get available storage drives, but not system
 
     Returns:
-        list[str]: Storage drives paths
+        set[str]: Storage drives paths
     '''
-    drives = []
+    drives = set()
 
     if os.name == "nt":
         bufferSize = ctypes.windll.kernel32.GetLogicalDriveStringsW(0, None)
@@ -551,31 +551,40 @@ def get_storage_drives() -> list[str]:
         
         systemDrive = os.environ.get("SYSTEMDRIVE")
         systemDrive = os.path.join(systemDrive, os.sep)
-        drives = list(filter(systemDrive.__ne__, drives))
+        drives = set(filter(systemDrive.__ne__, drives))
     
-    #  Only Linux support (using udev and procfs)
+    #  Only Linux support (using procfs)
     else:
-        systemLabels = ["root", "boot", "home", "opt", "srv", "usr", "var", "tmp"]
-        
-        for label in os.listdir("/dev/disk/by-label"):
-            if label.lower() not in systemLabels:
-                device = os.readlink(f"/dev/disk/by-label/{label}")
-                device = device.split("/")[-1]
-                device = os.path.join(os.sep, "dev", device)
-                drives.append(device)
-        
-        with open("/proc/mounts", "r") as mountsFile:
-            mounts = mountsFile.readlines()
-            mounts = [ mount.split()[:2] for mount in mounts ]
+        #  parse filesystems
+        fstypes = set()
+        with open("/proc/filesystems", "r") as fsFile:
+            for fstype in fsFile.readlines():
+                fstype = fstype.strip()
+                if not fstype.startswith("nodev"):
+                    fstypes.add(fstype)
+                else:
+                    #  ignore all lines except nodev zfs
+                    fstype = fstype.split("\t")[1]
+                    if fstype == "zfs":
+                        fstypes.add("zfs")
 
-        for mount in mounts:
-            device = mount[0]
-            if device in drives:
-                drives.remove(device)
-                drives.append(mount[1])
+        #  find mounts file
+        if os.path.isfile("/etc/mtab"):
+            mountsPath = os.path.realpath("/etc/mtab")
+        else:
+            mountsPath = os.path.realpath("/proc/self/mounts")
 
-        #  Clean up not mounted drives
-        drives = list(filter(lambda drive: "/dev" not in drive, drives))
+        #  parse partitions
+        with open(mountsPath, "r") as mountsFile:
+            for mount in mountsFile.readlines():
+                device, mountPoint, fstype = mount.split()[:3]
+                if device == "none" or device in ("/dev/root", "rootfs"):
+                    continue
+                if fstype not in fstypes:
+                    continue
+                if mountPoint in ("/", "/boot", "/home"):
+                    continue    
+                drives.add(mountPoint)
 
     return drives
 
@@ -593,7 +602,7 @@ def compare_backups(path: str=None):
     '''
     if path:
         path, BACKUP_FILENAME = os.path.split(path)
-        drives = [ path ]
+        drives = { path }
     else:
         drives = get_storage_drives()
     

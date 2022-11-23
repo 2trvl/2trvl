@@ -96,6 +96,8 @@ class dircmp(filecmp.dircmp):
             self.rightBasePath = rightBasePath
     
         if progressbar:
+            prefix = multiprocessing.Array("c", 1)
+            prefix.value = b""
             self.postfix = multiprocessing.Array("c", 11)
             self.postfix.value = b"in process"
             self.finished = multiprocessing.Value("b", False)
@@ -105,7 +107,7 @@ class dircmp(filecmp.dircmp):
             #  to track number of indexed files for sure
             self.renderingProcess = multiprocessing.Process(
                 target=ProgressBar(40).start_rendering_mp,
-                args=(self.postfix, multiprocessing.Value("i", -1), self.finished)
+                args=(prefix, multiprocessing.Value("i", -1), self.postfix, self.finished)
             )
             self.renderingProcess.start()
 
@@ -578,12 +580,12 @@ def get_storage_drives() -> set[str]:
         with open(mountsPath, "r") as mountsFile:
             for mount in mountsFile.readlines():
                 device, mountPoint, fstype = mount.split()[:3]
-                if device == "none" or device in ("/dev/root", "rootfs"):
-                    continue
                 if fstype not in fstypes:
                     continue
                 if mountPoint in ("/", "/boot", "/home"):
-                    continue    
+                    continue
+                if device == "none" or device in ("/dev/root", "rootfs"):
+                    continue
                 drives.add(mountPoint)
 
     return drives
@@ -627,7 +629,6 @@ def compare_backups(path: str=None):
                             progressbar=True
                         ) as zip:
                             zip.extractall(tempfile.gettempdir())
-                            zip.renderingProcess.join()
 
                     backupFilepath = os.path.join(tempfile.gettempdir(), backupFilename[0])
 

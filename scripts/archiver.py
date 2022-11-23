@@ -28,14 +28,6 @@ if WINDOWS_VT_MODE:
 
 
 class ProgressBar():
-    
-    #  ----- Constants -----
-    #  Active console screen buffer
-    STD_OUTPUT_HANDLE = -11
-    #  ANSI escape sequences
-    #  Part of common private modes
-    ESC_HIDE_CURSOR = "\033[?25l"
-    ESC_SHOW_CURSOR = "\033[?25h"
 
     def __init__(
         self,
@@ -110,6 +102,9 @@ class ProgressBar():
             return False
 
     if WINDOWS_VT_MODE:
+        #  Active console screen buffer
+        STD_OUTPUT_HANDLE = -11
+
         class CONSOLE_CURSOR_INFO(ctypes.Structure):
             '''
             Structure CONSOLE_CURSOR_INFO from WinCon.h
@@ -118,6 +113,11 @@ class ProgressBar():
                 ("size",     ctypes.c_int),
                 ("visible",  ctypes.c_byte)
             ]
+    else:
+        #  ANSI escape sequences
+        #  Part of common private modes
+        ESC_HIDE_CURSOR = "\033[?25l"
+        ESC_SHOW_CURSOR = "\033[?25h"
 
     def change_cursor_visibility(self, visibility: bool):
         '''
@@ -151,6 +151,10 @@ class ProgressBar():
         Threading version of start_rendering
 
         Change counter and finished variables to control
+
+        Might be unsafe without locks, but it shouldn't be
+        If you change variables in one thread
+        But if in several, then manage locks yourself
         '''
         self.change_cursor_visibility(False)
         while self.render(self.counter):
@@ -159,8 +163,9 @@ class ProgressBar():
 
     def start_rendering_mp(
         self,
-        unit: multiprocessing.Array,
+        prefix: multiprocessing.Array,
         counter: multiprocessing.Value,
+        unit: multiprocessing.Array,
         finished: multiprocessing.Value
     ):
         '''
@@ -170,15 +175,22 @@ class ProgressBar():
         and change them from MainProcess
 
         Args:
-            unit (multiprocessing.Array, 'c'): Unit or postfix
+            prefix (multiprocessing.Array, 'c'): Prefix
             counter (multiprocessing.Value, 'i'): Counter
+            unit (multiprocessing.Array, 'c'): Unit or postfix
             finished (multiprocessing.Value, 'b'): Finished
         '''
         self.change_cursor_visibility(False)
         while True:
-            with (unit.get_lock(), counter.get_lock(), finished.get_lock()):
-                self.unit = unit.value.decode()
+            with (
+                prefix.get_lock(),
+                counter.get_lock(),
+                unit.get_lock(),
+                finished.get_lock()
+            ):
+                self.prefix = prefix.value.decode()
                 self.counter = counter.value
+                self.unit = unit.value.decode()
                 self.finished = finished.value
             if not self.render(self.counter):
                 break
@@ -202,7 +214,7 @@ class ZipFile(zipfile.ZipFile):
         progressbar: bool=False
     ):
         '''
-        Better ZipFile with proper filename decoding & progressbar
+        Better ZipFile with proper names and symlinks encoding & progressbar
 
         Args:
             file (str | IO): Either the path to the file, 
@@ -243,15 +255,16 @@ class ZipFile(zipfile.ZipFile):
         self.progressbar = progressbar
 
         if progressbar:
+            self.prefix = multiprocessing.Array("c", 272)
+            self.prefix.value = b""
+            self.counter = multiprocessing.Value("i", 0)
             unit = multiprocessing.Array("c", 6)
             unit.value = b"files"
-            self.counter = multiprocessing.Value("i", 0)
             self.finished = multiprocessing.Value("b", False)
             self.renderingProcess = multiprocessing.Process(
                 target=ProgressBar(40).start_rendering_mp,
-                args=(unit, self.counter, self.finished)
+                args=(self.prefix, self.counter, unit, self.finished)
             )
-            self.renderingProcess.start()
     
     def guess_encoding(self, binaryText: bytes) -> tuple[str, str]:
         '''
@@ -407,10 +420,18 @@ class ZipFile(zipfile.ZipFile):
             raise
     
     def extractall(self, path=None, members=None, pwd=None):
+        if self.progressbar:
+            self.prefix.value = f"Extracting \"{self.filename}\" : ".encode()
+            self.renderingProcess.start()
         super().extractall(path, members, pwd)
         if self.progressbar:
             with self.finished.get_lock():
                 self.finished.value = True
+            #  reset progressbar
+            self.renderingProcess.join()
+            self.prefix.value = b""
+            self.counter.value = 0
+            self.finished.value = False
 
     def _extract_member(self, member, targetpath, pwd):
         if not isinstance(member, zipfile.ZipInfo):

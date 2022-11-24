@@ -14,6 +14,7 @@ names and symbolic links with progress bar
 So far only supports .zip
 
 '''
+import os
 import time
 import zipfile
 import multiprocessing
@@ -258,13 +259,103 @@ class ZipFile(zipfile.ZipFile):
             self.prefix = multiprocessing.Array("c", 272)
             self.prefix.value = b""
             self.counter = multiprocessing.Value("i", 0)
-            unit = multiprocessing.Array("c", 6)
-            unit.value = b"files"
+            self.unit = multiprocessing.Array("c", 6)
+            self.unit.value = b"files"
             self.finished = multiprocessing.Value("b", False)
             self.renderingProcess = multiprocessing.Process(
                 target=ProgressBar(40).start_rendering_mp,
-                args=(self.prefix, self.counter, unit, self.finished)
+                args=(self.prefix, self.counter, self.unit, self.finished)
             )
+
+    def _reset_progressbar(self):
+        '''
+        Reset progress bar values to defaults
+        '''
+        self.prefix.value = b""
+        self.counter.value = 0
+        self.unit.value = b"files"
+        self.finished.value = False
+    
+    def _RealGetContents(self):
+        '''
+        Read in the table of contents for the ZIP file.
+        '''
+        fp = self.fp
+        try:
+            endrec = zipfile._EndRecData(fp)
+        except OSError:
+            raise zipfile.BadZipFile("File is not a zip file")
+        if not endrec:
+            raise zipfile.BadZipFile("File is not a zip file")
+        if self.debug > 1:
+            print(endrec)
+        size_cd = endrec[zipfile._ECD_SIZE]             # bytes in central directory
+        offset_cd = endrec[zipfile._ECD_OFFSET]         # offset of central directory
+        self._comment = endrec[zipfile._ECD_COMMENT]    # archive comment
+
+        # "concat" is zero, unless zip was concatenated to another file
+        concat = endrec[zipfile._ECD_LOCATION] - size_cd - offset_cd
+        if endrec[zipfile._ECD_SIGNATURE] == zipfile.stringEndArchive64:
+            # If Zip64 extension structures are present, account for them
+            concat -= (zipfile.sizeEndCentDir64 + zipfile.sizeEndCentDir64Locator)
+
+        if self.debug > 2:
+            inferred = concat + offset_cd
+            print("given, inferred, offset", offset_cd, inferred, concat)
+        # self.start_dir:  Position of start of central directory
+        self.start_dir = offset_cd + concat
+        fp.seek(self.start_dir, 0)
+        data = fp.read(size_cd)
+        fp = zipfile.io.BytesIO(data)
+        total = 0
+        while total < size_cd:
+            centdir = fp.read(zipfile.sizeCentralDir)
+            if len(centdir) != zipfile.sizeCentralDir:
+                raise zipfile.BadZipFile("Truncated central directory")
+            centdir = zipfile.struct.unpack(zipfile.structCentralDir, centdir)
+            if centdir[zipfile._CD_SIGNATURE] != zipfile.stringCentralDir:
+                raise zipfile.BadZipFile("Bad magic number for central directory")
+            if self.debug > 2:
+                print(centdir)
+            filename = fp.read(centdir[_CD_FILENAME_LENGTH])
+            flags = centdir[5]
+            if flags & 0x800:
+                # UTF-8 file names extension
+                filename = filename.decode('utf-8')
+            else:
+                #------------------------------------------------------
+                #    Fix broken filenames due to incorrect encoding    
+                #------------------------------------------------------
+                filename = self.decode_filename(filename)
+            # Create ZipInfo instance to store file information
+            x = zipfile.ZipInfo(filename)
+            x.extra = fp.read(centdir[zipfile._CD_EXTRA_FIELD_LENGTH])
+            x.comment = fp.read(centdir[zipfile._CD_COMMENT_LENGTH])
+            x.header_offset = centdir[zipfile._CD_LOCAL_HEADER_OFFSET]
+            (x.create_version, x.create_system, x.extract_version, x.reserved,
+             x.flag_bits, x.compress_type, t, d,
+             x.CRC, x.compress_size, x.file_size) = centdir[1:12]
+            if x.extract_version > zipfile.MAX_EXTRACT_VERSION:
+                raise NotImplementedError("zip file version %.1f" %
+                                          (x.extract_version / 10))
+            x.volume, x.internal_attr, x.external_attr = centdir[15:18]
+            # Convert date/time code to (year, month, day, hour, min, sec)
+            x._raw_time = t
+            x.date_time = ( (d>>9)+1980, (d>>5)&0xF, d&0x1F,
+                            t>>11, (t>>5)&0x3F, (t&0x1F) * 2 )
+
+            x._decodeExtra()
+            x.header_offset = x.header_offset + concat
+            self.filelist.append(x)
+            self.NameToInfo[x.filename] = x
+
+            # update total bytes read from central directory
+            total = (total + zipfile.sizeCentralDir + centdir[zipfile._CD_FILENAME_LENGTH]
+                     + centdir[zipfile._CD_EXTRA_FIELD_LENGTH]
+                     + centdir[zipfile._CD_COMMENT_LENGTH])
+
+            if self.debug > 2:
+                print("total", total)
     
     def guess_encoding(self, binaryText: bytes) -> tuple[str, str]:
         '''
@@ -330,6 +421,22 @@ class ZipFile(zipfile.ZipFile):
         return filename
 
     def open(self, name, mode="r", pwd=None, *, force_zip64=False):
+        '''
+        Return file-like object for 'name'.
+
+        name is a string for the file name within the ZIP file, or a ZipInfo
+        object.
+
+        mode should be 'r' to read a file already in the ZIP file, or 'w' to
+        write to a file newly added to the archive.
+
+        pwd is the password to decrypt files (only used for reading).
+
+        When writing, if the file size is not known in advance but may exceed
+        2 GiB, pass force_zip64 to use the ZIP64 format, which can handle large
+        files.  If the size is known in advance, it is best to pass a ZipInfo
+        instance for name, with zinfo.file_size set.
+        '''
         if mode not in {"r", "w"}:
             raise ValueError('open() requires mode "r" or "w"')
         if pwd and not isinstance(pwd, bytes):
@@ -395,7 +502,9 @@ class ZipFile(zipfile.ZipFile):
                 # UTF-8 filename
                 fname_str = fname.decode("utf-8")
             else:
-                #  Fix broken filenames due to incorrect encoding
+                #------------------------------------------------------
+                #    Fix broken filenames due to incorrect encoding    
+                #------------------------------------------------------
                 fname_str = self.decode_filename(fname)
 
             if fname_str != zinfo.orig_filename:
@@ -419,35 +528,100 @@ class ZipFile(zipfile.ZipFile):
             zef_file.close()
             raise
     
-    def extractall(self, path=None, members=None, pwd=None):
-        if self.progressbar:
-            self.prefix.value = f"Extracting \"{self.filename}\" : ".encode()
+    def extract(self, member, path=None, pwd=None) -> str:
+        '''
+        Extract a member from the archive to the current working directory,
+        using its full name. Its file information is extracted as accurately
+        as possible. `member' may be a filename or a ZipInfo object. You can
+        specify a different directory using `path'.
+        '''
+        if path is None:
+            path = os.getcwd()
+        else:
+            path = os.fspath(path)
+
+        if self.progressbar and not self.renderingProcess.is_alive():
+            filename = os.path.basename(member.rstrip("/"))
+            self.prefix.value = f"Extracting \"{filename}\" : ".encode()
+            self.counter.value = -1
+            self.unit.value = b""
             self.renderingProcess.start()
-        super().extractall(path, members, pwd)
-        if self.progressbar:
+
+        targetpath = self._extract_member(member, path, pwd)
+        #  extract directory contents
+        if targetpath != path and os.path.isdir(targetpath):
+            members = [ name for name in self.namelist() if targetpath in name ][1:]
+            self.extractall(path, members)
+
+        if self.progressbar and self.renderingProcess.is_alive():
             with self.finished.get_lock():
                 self.finished.value = True
-            #  reset progressbar
             self.renderingProcess.join()
-            self.prefix.value = b""
-            self.counter.value = 0
-            self.finished.value = False
+            self._reset_progressbar()
 
-    def _extract_member(self, member, targetpath, pwd):
-        if not isinstance(member, zipfile.ZipInfo):
-            member = self.getinfo(member)
-        #  Change to historical ZIP filename encoding
-        member.filename = member.filename.encode("cp437")
-        member.orig_filename = member.orig_filename.encode("cp437")
-        #  Guess real encoding and decode
-        member.filename = self.decode_filename(member.filename)
-        member.orig_filename = member.filename
+        return targetpath
+
+    def extractall(self, path=None, members=None, pwd=None):
+        '''
+        Extract all members from the archive to the current working
+        directory. `path' specifies a different directory to extract to.
+        `members' is optional and must be a subset of the list returned
+        by namelist().
+        '''
+        if self.progressbar and not self.renderingProcess.is_alive():
+            self.prefix.value = f"Extracting \"{self.filename}\" : ".encode()
+            self.renderingProcess.start()
+        
+        if members is None:
+            members = self.namelist()
+
+        if path is None:
+            path = os.getcwd()
+        else:
+            path = os.fspath(path)
+
+        skip = ""
+        for zipinfo in members:
+            #  skip nested files if any
+            if skip:
+                if skip in zipinfo:
+                    continue
+                else:
+                    skip = ""
+            targetpath = self._extract_member(zipinfo, path, pwd)
+            #  name was found in ignore, add path to skip
+            if targetpath == path:
+                skip = zipinfo
+        
+        if self.progressbar and self.renderingProcess.is_alive():
+            with self.finished.get_lock():
+                self.finished.value = True
+            self.renderingProcess.join()
+            self._reset_progressbar()
+
+    def _extract_member(self, member, targetpath, pwd) -> str:
+        '''
+        Extract the ZipInfo object 'member' to a physical
+        file on the path targetpath.
+        '''
+        #  Extract filename
+        if isinstance(member, str):
+            filename = member
+        elif isinstance(member, zipfile.ZipInfo):
+            filename = member.filename
+        
         #  Check if not in ignore
-        if frozenset(member.filename.split("/")).intersection(self.ignore):
-            return
+        if frozenset(filename.split("/")).intersection(self.ignore):
+            return targetpath
+        
         #  Extract member
-        super()._extract_member(member, targetpath, pwd)
+        targetpath = super()._extract_member(member, targetpath, pwd)
+        
+        #  TODO: if '__SYMLINK__' in filename -> unpack properly
+
         #  Update progressbar if needed
-        if self.progressbar and not member.is_dir():
+        if self.progressbar and not os.path.isdir(targetpath) and self.counter.value != -1:
             with self.counter.get_lock():
                 self.counter.value += 1
+        
+        return targetpath

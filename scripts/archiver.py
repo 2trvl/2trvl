@@ -23,6 +23,7 @@ import charset_normalizer
 from typing import IO
 
 from common import WINDOWS_VT_MODE
+from widgets import clear_terminal
 
 if WINDOWS_VT_MODE:
     import ctypes
@@ -212,7 +213,9 @@ class ZipFile(zipfile.ZipFile):
         strict_timestamps: bool=True,
         preferredEncoding: str="cp866",
         ignore: list[str]=[],
-        progressbar: bool=False
+        progressbar: bool=False,
+        useBarPrefix: bool=True,
+        clearBarAfterFinished: bool=False
     ):
         '''
         Better ZipFile with proper names and symlinks encoding & progressbar
@@ -241,6 +244,11 @@ class ZipFile(zipfile.ZipFile):
                 Defaults to [].
             progressbar (bool, optional): Render progress bar while
                 running or not. Defaults to False.
+            useBarPrefix (bool, optional): Show progress bar prefix, disable
+                this option if your program itself prints events to the terminal.
+                Defaults to True
+            clearBarAfterFinished (bool, optional): Clears progress bar after it's
+                finished. Defaults to False
         '''
         super().__init__(
             file=file,
@@ -266,6 +274,8 @@ class ZipFile(zipfile.ZipFile):
                 target=ProgressBar(40).start_rendering_mp,
                 args=(self.prefix, self.counter, self.unit, self.finished)
             )
+            self.useBarPrefix = useBarPrefix
+            self.clearBarAfterFinished = clearBarAfterFinished
 
     def _reset_progressbar(self):
         '''
@@ -275,6 +285,18 @@ class ZipFile(zipfile.ZipFile):
         self.counter.value = 0
         self.unit.value = b"files"
         self.finished.value = False
+
+    def _finish_progressbar(self):
+        '''
+        Finish progressbar
+        '''
+        if self.progressbar and self.renderingProcess.is_alive():
+            with self.finished.get_lock():
+                self.finished.value = True
+            self.renderingProcess.join()
+            if self.clearBarAfterFinished:
+                clear_terminal(1)
+            self._reset_progressbar()
     
     def _RealGetContents(self):
         '''
@@ -317,7 +339,7 @@ class ZipFile(zipfile.ZipFile):
                 raise zipfile.BadZipFile("Bad magic number for central directory")
             if self.debug > 2:
                 print(centdir)
-            filename = fp.read(centdir[_CD_FILENAME_LENGTH])
+            filename = fp.read(centdir[zipfile._CD_FILENAME_LENGTH])
             flags = centdir[5]
             if flags & 0x800:
                 # UTF-8 file names extension
@@ -541,8 +563,9 @@ class ZipFile(zipfile.ZipFile):
             path = os.fspath(path)
 
         if self.progressbar and not self.renderingProcess.is_alive():
-            filename = os.path.basename(member.rstrip("/"))
-            self.prefix.value = f"Extracting \"{filename}\" : ".encode()
+            if self.useBarPrefix:
+                filename = os.path.basename(member.rstrip("/"))
+                self.prefix.value = f"Extracting \"{filename}\" : ".encode()
             self.counter.value = -1
             self.unit.value = b""
             self.renderingProcess.start()
@@ -553,11 +576,7 @@ class ZipFile(zipfile.ZipFile):
             members = [ name for name in self.namelist() if targetpath in name ][1:]
             self.extractall(path, members)
 
-        if self.progressbar and self.renderingProcess.is_alive():
-            with self.finished.get_lock():
-                self.finished.value = True
-            self.renderingProcess.join()
-            self._reset_progressbar()
+        self._finish_progressbar()
 
         return targetpath
 
@@ -569,7 +588,8 @@ class ZipFile(zipfile.ZipFile):
         by namelist().
         '''
         if self.progressbar and not self.renderingProcess.is_alive():
-            self.prefix.value = f"Extracting \"{self.filename}\" : ".encode()
+            if self.useBarPrefix:
+                self.prefix.value = f"Extracting \"{self.filename}\" : ".encode()
             self.renderingProcess.start()
         
         if members is None:
@@ -593,11 +613,7 @@ class ZipFile(zipfile.ZipFile):
             if targetpath == path:
                 skip = zipinfo
         
-        if self.progressbar and self.renderingProcess.is_alive():
-            with self.finished.get_lock():
-                self.finished.value = True
-            self.renderingProcess.join()
-            self._reset_progressbar()
+        self._finish_progressbar()
 
     def _extract_member(self, member, targetpath, pwd) -> str:
         '''
@@ -625,3 +641,58 @@ class ZipFile(zipfile.ZipFile):
                 self.counter.value += 1
         
         return targetpath
+
+    def write(
+        self,
+        filename,
+        arcname=None,
+        compress_type=None,
+        compresslevel=None
+    ):
+        '''
+        Better zipfile.write which supports writing
+        symlinks and directories
+
+        Put the bytes from filename into the archive under the name
+        arcname.
+        '''
+        if arcname is None:
+            arcname = os.path.basename(filename.rstrip("/"))
+
+        if self.progressbar and not self.renderingProcess.is_alive():
+            if self.useBarPrefix:
+                self.prefix.value = f"Writing \"{arcname}\" : ".encode()
+            if os.path.isfile(filename):
+                self.counter.value = -1
+                self.unit.value = b""
+            self.renderingProcess.start()
+        
+        self._write(filename, arcname, compress_type, compresslevel)
+
+        self._finish_progressbar()
+
+    def _write(
+        self,
+        filename,
+        arcname,
+        compress_type=None,
+        compresslevel=None
+    ):
+        '''
+        Real zipfile.write, recursive
+        '''
+        if os.path.isfile(filename):
+            #  TODO: Make symlinks convertor
+            #  if os.path.islink -> super().writestr()
+            super().write(filename, arcname, compress_type, compresslevel)
+        
+        elif os.path.isdir(filename):
+            super().write(filename, arcname, compress_type, compresslevel)
+            
+            for file in sorted(os.listdir(filename)):
+                self._write(
+                    filename=os.path.join(filename, file),
+                    arcname=os.path.join(arcname, file),
+                    compress_type=compress_type,
+                    compresslevel=compresslevel
+                )

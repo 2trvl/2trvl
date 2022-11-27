@@ -84,6 +84,9 @@ class dircmp(filecmp.dircmp):
                 running or not. If True an object of type ProgressBar
                 is created, to stop it set the finished variable to True.
                 Defaults to False.
+
+        If you use progressbar option on Windows - run your code in the
+        "if __name__ == '__main__'" statement
         '''
         super().__init__(leftPath, rightPath, ignore, hide)
         self.subdirMode = subdirMode
@@ -106,7 +109,7 @@ class dircmp(filecmp.dircmp):
             #  calls, so we omit counter, since it is impossible
             #  to track number of indexed files for sure
             self.renderingProcess = multiprocessing.Process(
-                target=ProgressBar(40).start_rendering_mp,
+                target=ProgressBar(size=40, clearMode=True).start_rendering_mp,
                 args=(prefix, multiprocessing.Value("i", -1), self.postfix, self.finished)
             )
             self.renderingProcess.start()
@@ -626,7 +629,8 @@ def compare_backups(path: str=None):
                             mode="r",
                             preferredEncoding=PREFERRED_ENCODING,
                             ignore=IGNORE,
-                            progressbar=True
+                            progressbar=True,
+                            useBarPrefix=False
                         ) as zip:
                             zip.extractall(tempfile.gettempdir())
 
@@ -674,7 +678,7 @@ def compare_backups(path: str=None):
                 )
                 
                 with (compared.postfix.get_lock(), compared.finished.get_lock()):
-                    compared.postfix.value = f"finished{' ' * (len(compared.postfix.value) - 8)}".encode()
+                    compared.postfix.value = f"finished".encode()
                     compared.finished.value = True
                 
                 compared.renderingProcess.join()

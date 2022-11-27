@@ -37,7 +37,8 @@ class ProgressBar():
         unit: str="",
         prefix: str="",
         frames: str="-\|/=",
-        timeout: float=0.1
+        timeout: float=0.1,
+        clearMode: bool=False
     ):
         '''
         Progress bar for unknown process time        
@@ -51,6 +52,12 @@ class ProgressBar():
                 for finished state. Defaults to "-\|/=".
             timeout (float, optional): Pause between renders
                 used in start_rendering(). Defaults to 0.1.
+            clearMode (bool, optional): Redraws each frame of
+                the progress bar, clearing the previous one.
+                It makes sense to activate this option if you
+                are changing the prefix, unit, or even the size.
+                Otherwise, characters of previous frame will remain
+                in the terminal if it was longer. Defaults to False.
 
         Modify the following special variables to control 
         progress bar:
@@ -64,6 +71,7 @@ class ProgressBar():
         self.prefix = prefix
         self.frames = frames
         self.timeout = timeout
+        self.clearMode = clearMode
         #  Special variables
         self.frame = 0
         self.counter = 0
@@ -81,27 +89,30 @@ class ProgressBar():
             bool: Should the next frame of the progress bar
             be rendered (equals to not finished)
         '''
-        if counter > 0:
+        if counter >= 0:
             counter = f" {counter}"
         else:
             counter = ""
 
-        if not self.finished:
+        if self.clearMode:
+            end = "\n"
+        else:
+            end = "\r"
+
+        if self.finished:
+            end = "\n"
+            self.frame = -1
+        else:
             self.frame += 1
             self.frame %= len(self.frames) - 1
-            print(
-                f"{self.prefix}[{self.frames[self.frame] * self.size}]{counter} {self.unit}",
-                end="\r",
-                flush=True
-            )
-            return True
-        else:
-            print(
-                f"{self.prefix}[{self.frames[-1] * self.size}]{counter} {self.unit}",
-                end="\n",
-                flush=True
-            )
-            return False
+
+        print(
+            f"{self.prefix}[{self.frames[self.frame] * self.size}]{counter} {self.unit}",
+            end=end,
+            flush=True
+        )
+
+        return not self.finished
 
     if WINDOWS_VT_MODE:
         #  Active console screen buffer
@@ -159,8 +170,12 @@ class ProgressBar():
         But if in several, then manage locks yourself
         '''
         self.change_cursor_visibility(False)
-        while self.render(self.counter):
+        while True:
+            if not self.render(self.counter):
+                break
             time.sleep(self.timeout)
+            if self.clearMode:
+                clear_terminal(1)
         self.change_cursor_visibility(True)
 
     def start_rendering_mp(
@@ -197,6 +212,8 @@ class ProgressBar():
             if not self.render(self.counter):
                 break
             time.sleep(self.timeout)
+            if self.clearMode:
+                clear_terminal(1)
         self.change_cursor_visibility(True)
 
 
@@ -249,7 +266,13 @@ class ZipFile(zipfile.ZipFile):
                 Defaults to True
             clearBarAfterFinished (bool, optional): Clears progress bar after it's
                 finished. Defaults to False
+
+        If you use progressbar option on Windows - run your code in the
+        "if __name__ == '__main__'" statement
         '''
+        self.latestCharset = None
+        self.preferredEncoding = preferredEncoding
+        
         super().__init__(
             file=file,
             mode=mode,
@@ -258,8 +281,7 @@ class ZipFile(zipfile.ZipFile):
             compresslevel=compresslevel,
             strict_timestamps=strict_timestamps
         )
-        self.latestCharset = None
-        self.preferredEncoding = preferredEncoding
+
         self.ignore = ignore
         self.progressbar = progressbar
 
@@ -557,6 +579,9 @@ class ZipFile(zipfile.ZipFile):
         as possible. `member' may be a filename or a ZipInfo object. You can
         specify a different directory using `path'.
         '''
+        if isinstance(member, zipfile.ZipInfo):
+            member = member.filename
+
         if path is None:
             path = os.getcwd()
         else:
@@ -566,14 +591,15 @@ class ZipFile(zipfile.ZipFile):
             if self.useBarPrefix:
                 filename = os.path.basename(member.rstrip("/"))
                 self.prefix.value = f"Extracting \"{filename}\" : ".encode()
-            self.counter.value = -1
-            self.unit.value = b""
+            if not member.endswith("/"):
+                self.counter.value = -1
+                self.unit.value = b""
             self.renderingProcess.start()
 
         targetpath = self._extract_member(member, path, pwd)
         #  extract directory contents
         if targetpath != path and os.path.isdir(targetpath):
-            members = [ name for name in self.namelist() if targetpath in name ][1:]
+            members = [ name for name in self.namelist() if member in name ][1:]
             self.extractall(path, members)
 
         self._finish_progressbar()
@@ -657,7 +683,10 @@ class ZipFile(zipfile.ZipFile):
         arcname.
         '''
         if arcname is None:
-            arcname = os.path.basename(filename.rstrip("/"))
+            arcname = "{}/{}".format(
+                os.path.splitext(self.filename)[0],
+                os.path.basename(filename.rstrip("/"))
+            )
 
         if self.progressbar and not self.renderingProcess.is_alive():
             if self.useBarPrefix:
@@ -681,12 +710,20 @@ class ZipFile(zipfile.ZipFile):
         '''
         Real zipfile.write, recursive
         '''
+        if frozenset(arcname.split("/")).intersection(self.ignore):
+            return
+
         if os.path.isfile(filename):
             #  TODO: Make symlinks convertor
             #  if os.path.islink -> super().writestr()
             super().write(filename, arcname, compress_type, compresslevel)
+
+            if self.progressbar and self.counter.value != -1:
+                with self.counter.get_lock():
+                    self.counter.value += 1
         
         elif os.path.isdir(filename):
+            arcname += "/"
             super().write(filename, arcname, compress_type, compresslevel)
             
             for file in sorted(os.listdir(filename)):

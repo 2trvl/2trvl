@@ -731,7 +731,7 @@ class ZipFile(zipfile.ZipFile):
                 else:
                     os.remove(targetpath)
             else:
-                #  Don't rename dirs only files
+                #  Don't rename dirs, only files
                 if not member.is_dir():
                     targetpath, name = os.path.split(targetpath)
                     for name in self.get_unique_filename(name):
@@ -809,26 +809,29 @@ class ZipFile(zipfile.ZipFile):
             return
 
         #  Check for dir trailing slash
-        if os.path.isfile(filename):
-            trailingSlash = ""
-        else:
-            trailingSlash = "/"
+        if os.path.isdir(filename):
             if not arcname.endswith("/"):
                 arcname += "/"
+            createDir = True
 
         #  Deal with duplicates
         if arcname in self.namelist():
             if self.overwriteDuplicates:
                 self.remove(arcname)
             else:
-                arcname, name = os.path.split(arcname.rstrip("/"))
-                for name in self.get_unique_filename(name):
-                    name = f"{arcname}/{name}{trailingSlash}"
-                    if name not in self.namelist():
-                        arcname = name
-                        break
+                #  Don't rename dirs, only files
+                if not arcname.endswith("/"):
+                    arcname, name = os.path.split(arcname)
+                    for name in self.get_unique_filename(name):
+                        name = f"{arcname}/{name}"
+                        if name not in self.namelist():
+                            arcname = name
+                            break
+                else:
+                    #  Dir already exist
+                    createDir = False
 
-        if not trailingSlash:
+        if not arcname.endswith("/"):
             #  TODO: Make symlinks convertor
             #  if os.path.islink -> super().writestr()
             super().write(filename, arcname, compress_type, compresslevel)
@@ -838,7 +841,8 @@ class ZipFile(zipfile.ZipFile):
                     self.counter.value += 1
         
         else:
-            super().write(filename, arcname, compress_type, compresslevel)
+            if createDir:
+                super().write(filename, arcname, compress_type, compresslevel)
             
             for file in sorted(os.listdir(filename)):
                 self._write(

@@ -16,11 +16,14 @@ So far only supports .zip
 '''
 import os
 import time
+import shutil
 import zipfile
+import itertools
 import multiprocessing
 import charset_normalizer
 
-from typing import IO
+from typing import IO, Iterator
+from operator import attrgetter
 
 from common import WINDOWS_VT_MODE
 from widgets import clear_terminal
@@ -230,6 +233,7 @@ class ZipFile(zipfile.ZipFile):
         strict_timestamps: bool=True,
         preferredEncoding: str="cp866",
         ignore: list[str]=[],
+        overwriteDuplicates: bool=False,
         progressbar: bool=False,
         useBarPrefix: bool=True,
         clearBarAfterFinished: bool=False
@@ -259,6 +263,10 @@ class ZipFile(zipfile.ZipFile):
                 guessing the original. Defaults to "cp866".
             ignore (list[str], optional): Filenames to ignore.
                 Defaults to [].
+            overwriteDuplicates (bool, optional): Overwrite if file exists
+                or write filename with number in it. If you are going to
+                enable this option - open archive in 'a' mode.
+                Defaults to False
             progressbar (bool, optional): Render progress bar while
                 running or not. Defaults to False.
             useBarPrefix (bool, optional): Show progress bar prefix, disable
@@ -283,6 +291,8 @@ class ZipFile(zipfile.ZipFile):
         )
 
         self.ignore = ignore
+        self.overwriteDuplicates = overwriteDuplicates
+        
         self.progressbar = progressbar
 
         if progressbar:
@@ -292,12 +302,27 @@ class ZipFile(zipfile.ZipFile):
             self.unit = multiprocessing.Array("c", 6)
             self.unit.value = b"files"
             self.finished = multiprocessing.Value("b", False)
-            self.renderingProcess = multiprocessing.Process(
-                target=ProgressBar(40).start_rendering_mp,
-                args=(self.prefix, self.counter, self.unit, self.finished)
-            )
-            self.useBarPrefix = useBarPrefix
-            self.clearBarAfterFinished = clearBarAfterFinished
+            self._start_progressbar(createOnly=True)
+        
+        self.useBarPrefix = useBarPrefix
+        self.clearBarAfterFinished = clearBarAfterFinished
+
+    def _start_progressbar(self, createOnly: bool=False):
+        '''
+        Start progress bar
+        Because we cannot restart a terminated process.
+        We need to instantiate a new.
+
+        Args:
+            createOnly (bool, optional): Don't start renderingProcess
+            after creating. Defaults to False.
+        '''
+        self.renderingProcess = multiprocessing.Process(
+            target=ProgressBar(40).start_rendering_mp,
+            args=(self.prefix, self.counter, self.unit, self.finished)
+        )
+        if not createOnly:
+            self.renderingProcess.start()
 
     def _reset_progressbar(self):
         '''
@@ -464,6 +489,25 @@ class ZipFile(zipfile.ZipFile):
         filename = "/".join(filenames)
         return filename
 
+    def get_unique_filename(self, filename: str) -> Iterator[str]:
+        '''
+        Unique name generator: adds a number to the filename
+        
+        Used to rename duplicates if the overwriteDuplicates
+        parameter is disabled
+
+        Args:
+            filename (str): Filename
+
+        Yields:
+            Iterator[str]: filename (1), filename (2) ...
+        '''
+        filename, extension = os.path.splitext(filename)
+        number = itertools.count(1)
+        
+        while True:
+            yield f"{filename} ({next(number)}){extension}"
+
     def open(self, name, mode="r", pwd=None, *, force_zip64=False):
         '''
         Return file-like object for 'name'.
@@ -594,7 +638,7 @@ class ZipFile(zipfile.ZipFile):
             if not member.endswith("/"):
                 self.counter.value = -1
                 self.unit.value = b""
-            self.renderingProcess.start()
+            self._start_progressbar()
 
         targetpath = self._extract_member(member, path, pwd)
         #  extract directory contents
@@ -616,7 +660,7 @@ class ZipFile(zipfile.ZipFile):
         if self.progressbar and not self.renderingProcess.is_alive():
             if self.useBarPrefix:
                 self.prefix.value = f"Extracting \"{self.filename}\" : ".encode()
-            self.renderingProcess.start()
+            self._start_progressbar()
         
         if members is None:
             members = self.namelist()
@@ -656,13 +700,64 @@ class ZipFile(zipfile.ZipFile):
         if frozenset(filename.split("/")).intersection(self.ignore):
             return targetpath
         
-        #  Extract member
-        targetpath = super()._extract_member(member, targetpath, pwd)
+        #  Extract member, original _extract_member() code
+        if not isinstance(member, zipfile.ZipInfo):
+            member = self.getinfo(member)
+
+        # build the destination pathname, replacing
+        # forward slashes to platform specific separators.
+        arcname = member.filename.replace('/', os.path.sep)
+
+        if os.path.altsep:
+            arcname = arcname.replace(os.path.altsep, os.path.sep)
+        # interpret absolute pathname as relative, remove drive letter or
+        # UNC path, redundant separators, "." and ".." components.
+        arcname = os.path.splitdrive(arcname)[1]
+        invalid_path_parts = ('', os.path.curdir, os.path.pardir)
+        arcname = os.path.sep.join(x for x in arcname.split(os.path.sep)
+                                   if x not in invalid_path_parts)
+        if os.path.sep == '\\':
+            # filter illegal characters on Windows
+            arcname = self._sanitize_windows_name(arcname, os.path.sep)
+
+        targetpath = os.path.join(targetpath, arcname)
+        targetpath = os.path.normpath(targetpath)
+        
+        #  Deal with duplicates
+        if os.path.exists(targetpath):
+            if self.overwriteDuplicates:
+                if member.is_dir():
+                    shutil.rmtree(targetpath)
+                else:
+                    os.remove(targetpath)
+            else:
+                #  Don't rename dirs only files
+                if not member.is_dir():
+                    targetpath, name = os.path.split(targetpath)
+                    for name in self.get_unique_filename(name):
+                        name = os.path.join(targetpath, name)
+                        if not os.path.exists(name):
+                            targetpath = name
+                            break
+
+        # Create all upper directories if necessary.
+        upperdirs = os.path.dirname(targetpath)
+        if upperdirs and not os.path.exists(upperdirs):
+            os.makedirs(upperdirs)
+
+        if member.is_dir():
+            if not os.path.isdir(targetpath):
+                os.mkdir(targetpath)
+            return targetpath
+
+        with self.open(member, pwd=pwd) as source, \
+             open(targetpath, "wb") as target:
+            shutil.copyfileobj(source, target)
         
         #  TODO: if '__SYMLINK__' in filename -> unpack properly
 
         #  Update progressbar if needed
-        if self.progressbar and not os.path.isdir(targetpath) and self.counter.value != -1:
+        if self.progressbar and self.counter.value != -1:
             with self.counter.get_lock():
                 self.counter.value += 1
         
@@ -694,7 +789,7 @@ class ZipFile(zipfile.ZipFile):
             if os.path.isfile(filename):
                 self.counter.value = -1
                 self.unit.value = b""
-            self.renderingProcess.start()
+            self._start_progressbar()
         
         self._write(filename, arcname, compress_type, compresslevel)
 
@@ -713,7 +808,27 @@ class ZipFile(zipfile.ZipFile):
         if frozenset(arcname.split("/")).intersection(self.ignore):
             return
 
+        #  Check for dir trailing slash
         if os.path.isfile(filename):
+            trailingSlash = ""
+        else:
+            trailingSlash = "/"
+            if not arcname.endswith("/"):
+                arcname += "/"
+
+        #  Deal with duplicates
+        if arcname in self.namelist():
+            if self.overwriteDuplicates:
+                self.remove(arcname)
+            else:
+                arcname, name = os.path.split(arcname.rstrip("/"))
+                for name in self.get_unique_filename(name):
+                    name = f"{arcname}/{name}{trailingSlash}"
+                    if name not in self.namelist():
+                        arcname = name
+                        break
+
+        if not trailingSlash:
             #  TODO: Make symlinks convertor
             #  if os.path.islink -> super().writestr()
             super().write(filename, arcname, compress_type, compresslevel)
@@ -722,8 +837,7 @@ class ZipFile(zipfile.ZipFile):
                 with self.counter.get_lock():
                     self.counter.value += 1
         
-        elif os.path.isdir(filename):
-            arcname += "/"
+        else:
             super().write(filename, arcname, compress_type, compresslevel)
             
             for file in sorted(os.listdir(filename)):
@@ -733,3 +847,76 @@ class ZipFile(zipfile.ZipFile):
                     compress_type=compress_type,
                     compresslevel=compresslevel
                 )
+    
+    def remove(self, member):
+        '''
+        Remove a file from the archive. The archive must be open with mode 'a'
+        
+        CPython commit 659eb048cc9cac73c46349eb29845bc5cd630f09
+        '''
+
+        if self.mode != 'a':
+            raise RuntimeError("remove() requires mode 'a'")
+        if not self.fp:
+            raise ValueError(
+                "Attempt to write to ZIP archive that was already closed")
+        if self._writing:
+            raise ValueError(
+                "Can't write to ZIP archive while an open writing handle exists."
+            )
+
+        # Make sure we have an info object
+        if isinstance(member, zipfile.ZipInfo):
+            # 'member' is already an info object
+            zinfo = member
+        else:
+            # get the info object
+            zinfo = self.getinfo(member)
+
+        return self._remove_member(zinfo)
+
+    def _remove_member(self, member):
+        # get a sorted filelist by header offset, in case the dir order
+        # doesn't match the actual entry order
+        fp = self.fp
+        entry_offset = 0
+        filelist = sorted(self.filelist, key=attrgetter('header_offset'))
+        for i in range(len(filelist)):
+            info = filelist[i]
+            # find the target member
+            if info.header_offset < member.header_offset:
+                continue
+
+            # get the total size of the entry
+            entry_size = None
+            if i == len(filelist) - 1:
+                entry_size = self.start_dir - info.header_offset
+            else:
+                entry_size = filelist[i + 1].header_offset - info.header_offset
+
+            # found the member, set the entry offset
+            if member == info:
+                entry_offset = entry_size
+                continue
+
+            # Move entry
+            # read the actual entry data
+            fp.seek(info.header_offset)
+            entry_data = fp.read(entry_size)
+
+            # update the header
+            info.header_offset -= entry_offset
+
+            # write the entry to the new position
+            fp.seek(info.header_offset)
+            fp.write(entry_data)
+            fp.flush()
+
+        # update state
+        self.start_dir -= entry_offset
+        self.filelist.remove(member)
+        del self.NameToInfo[member.filename]
+        self._didModify = True
+
+        # seek to the start of the central dir
+        fp.seek(self.start_dir)

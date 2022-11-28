@@ -113,6 +113,16 @@ class dircmp(filecmp.dircmp):
                 args=(prefix, multiprocessing.Value("i", -1), self.postfix, self.finished)
             )
             self.renderingProcess.start()
+    
+    def finish_progressbar(self):
+        '''
+        Finish progressbar if it exists
+        '''
+        if hasattr(self, "renderingProcess"):
+            with (self.postfix.get_lock(), self.finished.get_lock()):
+                self.postfix.value = f"finished".encode()
+                self.finished.value = True
+            self.renderingProcess.join()
 
     def phase1(self):
         '''
@@ -676,12 +686,8 @@ def compare_backups(path: str=None):
                     file=report,
                     flush=True
                 )
-                
-                with (compared.postfix.get_lock(), compared.finished.get_lock()):
-                    compared.postfix.value = f"finished".encode()
-                    compared.finished.value = True
-                
-                compared.renderingProcess.join()
+
+                compared.finish_progressbar()
 
                 print(
                     f"( new: {len(compared.right_only)}, modified: {len(compared.diff_files)}, removed: {len(compared.left_only)} )",

@@ -324,6 +324,14 @@ class ZipFile(zipfile.ZipFile):
         if not createOnly:
             self.renderingProcess.start()
 
+    def _update_progressbar(self):
+        '''
+        Increment progressbar counter if needed
+        '''
+        if self.progressbar and self.counter.value != -1:
+            with self.counter.get_lock():
+                self.counter.value += 1
+
     def _reset_progressbar(self):
         '''
         Reset progress bar values to defaults
@@ -755,11 +763,9 @@ class ZipFile(zipfile.ZipFile):
             shutil.copyfileobj(source, target)
         
         #  TODO: if '__SYMLINK__' in filename -> unpack properly
-
-        #  Update progressbar if needed
-        if self.progressbar and self.counter.value != -1:
-            with self.counter.get_lock():
-                self.counter.value += 1
+        
+        if not member.is_dir():
+            self._update_progressbar()
         
         return targetpath
 
@@ -812,12 +818,15 @@ class ZipFile(zipfile.ZipFile):
         if os.path.isdir(filename):
             if not arcname.endswith("/"):
                 arcname += "/"
-            createDir = True
+
+        #  Is it need to create a file?
+        create = True
 
         #  Deal with duplicates
         if arcname in self.namelist():
             if self.overwriteDuplicates:
-                self.remove(arcname)
+                #  If member cannot be removed, create = False
+                create = self.remove(arcname)
             else:
                 #  Don't rename dirs, only files
                 if not arcname.endswith("/"):
@@ -829,19 +838,18 @@ class ZipFile(zipfile.ZipFile):
                             break
                 else:
                     #  Dir already exist
-                    createDir = False
+                    create = False
 
         if not arcname.endswith("/"):
             #  TODO: Make symlinks convertor
             #  if os.path.islink -> super().writestr()
-            super().write(filename, arcname, compress_type, compresslevel)
+            if create:
+                super().write(filename, arcname, compress_type, compresslevel)
 
-            if self.progressbar and self.counter.value != -1:
-                with self.counter.get_lock():
-                    self.counter.value += 1
+            self._update_progressbar()
         
         else:
-            if createDir:
+            if create:
                 super().write(filename, arcname, compress_type, compresslevel)
             
             for file in sorted(os.listdir(filename)):
@@ -852,13 +860,25 @@ class ZipFile(zipfile.ZipFile):
                     compresslevel=compresslevel
                 )
     
-    def remove(self, member):
+    def remove(self, member: zipfile.ZipInfo | str) -> bool:
         '''
-        Remove a file from the archive. The archive must be open with mode 'a'
+        Remove a file or folder from the archive.
+        The archive must be open with mode 'a'
         
         CPython commit 659eb048cc9cac73c46349eb29845bc5cd630f09
-        '''
 
+        Args:
+            member (zipfile.ZipInfo | str): Member
+
+        Raises:
+            RuntimeError: remove() requires mode 'a'
+            ValueError: Attempt to write to ZIP archive that was already closed
+            ValueError: Can't write to ZIP archive while an open writing handle exists.
+
+        Returns:
+            bool: Whether it was removed or not. False means the file was in ignore.
+            For a folder, this means that there are files left inside it that are in ignore.
+        '''
         if self.mode != 'a':
             raise RuntimeError("remove() requires mode 'a'")
         if not self.fp:
@@ -870,16 +890,71 @@ class ZipFile(zipfile.ZipFile):
             )
 
         # Make sure we have an info object
-        if isinstance(member, zipfile.ZipInfo):
-            # 'member' is already an info object
-            zinfo = member
-        else:
+        if isinstance(member, str):
             # get the info object
-            zinfo = self.getinfo(member)
+            member = self.getinfo(member)   
 
-        return self._remove_member(zinfo)
+        if self.progressbar and not self.renderingProcess.is_alive():
+            if self.useBarPrefix:
+                filename = os.path.basename(member.filename.rstrip("/"))
+                self.prefix.value = f"Removing \"{filename}\" : ".encode()
+            if not member.is_dir():
+                self.counter.value = -1
+                self.unit.value = b""
+            self._start_progressbar()
 
-    def _remove_member(self, member):
+        removed = True
+
+        if member.is_dir():
+            names = [ name for name in self.namelist() if member.filename in name ]
+            #  inverse to remove members from subdirectories first
+            dirs = []
+            files = []
+            for name in names:
+                if name.endswith("/"):
+                    dirs.insert(0, name)
+                else:
+                    files.insert(0, name)
+            #  duplicate files list
+            names = files.copy()
+            #  remove files first, then subdirectories
+            for file in files:
+                file = self.getinfo(file)
+                removedFile = self._remove_member(file)
+                #  if file in ignore, ignore whole subdirectory
+                if not removedFile:
+                    subdir = os.path.dirname(file.filename) + "/"
+                    if subdir in dirs:
+                        dirs.remove(subdir)
+                else:
+                    names.remove(file.filename)
+                removed &= removedFile
+            #  clean up empty subdirs
+            for subdir in dirs:
+                files = [ file for file in names if subdir in file ]
+                if not files:
+                    subdir = self.getinfo(subdir)
+                    self._remove_member(subdir)
+        else:
+            removed &= self._remove_member(member)
+
+        self._finish_progressbar()
+        return removed
+
+    def _remove_member(self, member: zipfile.ZipInfo) -> bool:
+        '''
+        Remove member from archive
+
+        Args:
+            member (zipfile.ZipInfo): Member
+
+        Returns:
+            bool: Whether it was removed or not. False means the file was in ignore.
+        '''
+        #  Check if not in ignore
+        if frozenset(member.filename.split("/")).intersection(self.ignore):
+            return False
+
         # get a sorted filelist by header offset, in case the dir order
         # doesn't match the actual entry order
         fp = self.fp
@@ -924,3 +999,8 @@ class ZipFile(zipfile.ZipFile):
 
         # seek to the start of the central dir
         fp.seek(self.start_dir)
+
+        if not member.is_dir():
+            self._update_progressbar()
+        
+        return True

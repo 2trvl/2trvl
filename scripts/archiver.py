@@ -19,6 +19,7 @@ import time
 import shutil
 import zipfile
 import itertools
+import threading
 import multiprocessing
 import charset_normalizer
 
@@ -79,6 +80,27 @@ class ProgressBar():
         self.frame = 0
         self.counter = 0
         self.finished = False
+
+    def __enter__(self) -> "ProgressBar":
+        self.renderingThread = threading.Thread(target=self.start_rendering)
+        self.renderingThread.start()
+        return self
+
+    def __exit__(self, excType, excValue, traceback):
+        self.finished = True
+        self.renderingThread.join()
+
+    def __repr__(self) -> str:
+        return (
+            "ProgressBar("
+            f"size={self.size}, "
+            f"unit=\"{self.unit}\", "
+            f"prefix=\"{self.prefix}\", "
+            f"frames=\"{self.frames}\", "
+            f"timeout={self.timeout}, "
+            f"clearMode={self.clearMode}"
+            ")"
+        )
     
     def render(self, counter: int) -> bool:
         '''

@@ -17,6 +17,7 @@ So far only supports .zip
 import os
 import time
 import shutil
+import hashlib
 import zipfile
 import itertools
 import threading
@@ -720,23 +721,32 @@ class ZipFile(zipfile.ZipFile):
         Extract the ZipInfo object 'member' to a physical
         file on the path targetpath.
         '''
-        #  Extract filename
-        if isinstance(member, str):
-            filename = member
-        elif isinstance(member, zipfile.ZipInfo):
-            filename = member.filename
-        
-        #  Check if not in ignore
-        if frozenset(filename.split("/")).intersection(self.ignore):
-            return targetpath
-        
-        #  Extract member, original _extract_member() code
         if not isinstance(member, zipfile.ZipInfo):
             member = self.getinfo(member)
+        
+        arcname = member.filename
+
+        #  Symlinks real name handling
+        if os.path.basename(arcname).startswith("__symlink__"):
+            with self.open(member, pwd=pwd) as source:
+                symlink = source.readline().decode()
+                filename, symlink, isdir = symlink.split(",")
+                #  convert to boolean
+                isdir = isdir == "True"
+            arcname = os.path.dirname(arcname)
+            arcname = f"{arcname}/{filename}"
+        else:
+            symlink = None
+        
+        #  Check if not in ignore
+        if frozenset(arcname.split("/")).intersection(self.ignore):
+            return targetpath
+        
+        #  Original _extract_member() code
 
         # build the destination pathname, replacing
         # forward slashes to platform specific separators.
-        arcname = member.filename.replace('/', os.path.sep)
+        arcname = arcname.replace('/', os.path.sep)
 
         if os.path.altsep:
             arcname = arcname.replace(os.path.altsep, os.path.sep)
@@ -780,14 +790,14 @@ class ZipFile(zipfile.ZipFile):
                 os.mkdir(targetpath)
             return targetpath
 
-        with self.open(member, pwd=pwd) as source, \
-             open(targetpath, "wb") as target:
-            shutil.copyfileobj(source, target)
+        if symlink is not None:
+            os.symlink(symlink, targetpath, isdir)
+        else:
+            with self.open(member, pwd=pwd) as source, \
+                open(targetpath, "wb") as target:
+                shutil.copyfileobj(source, target)
         
-        #  TODO: if '__SYMLINK__' in filename -> unpack properly
-        
-        if not member.is_dir():
-            self._update_progressbar()
+        self._update_progressbar()
         
         return targetpath
 
@@ -833,11 +843,26 @@ class ZipFile(zipfile.ZipFile):
         '''
         Real zipfile.write, recursive
         '''
-        if frozenset(arcname.split("/")).intersection(self.ignore):
+        #  Check if not in ignore
+        if frozenset(filename.split("/")).intersection(self.ignore):
             return
 
+        symlink = None
+
+        #  Check if file is a symlink
+        if os.path.islink(filename):
+            #  symlink file content
+            symlink = "{},{},{}".format(
+                os.path.basename(filename),
+                os.readlink(filename),
+                os.path.isdir(filename)
+            )
+            #  generate new arcname
+            arcname = os.path.dirname(arcname)
+            arcname = f"{arcname}/__symlink__{hashlib.md5(symlink.encode()).hexdigest()}"
+        
         #  Check for dir trailing slash
-        if os.path.isdir(filename):
+        elif os.path.isdir(filename):
             if not arcname.endswith("/"):
                 arcname += "/"
 
@@ -863,10 +888,11 @@ class ZipFile(zipfile.ZipFile):
                     create = False
 
         if not arcname.endswith("/"):
-            #  TODO: Make symlinks convertor
-            #  if os.path.islink -> super().writestr()
             if create:
-                super().write(filename, arcname, compress_type, compresslevel)
+                if symlink is None:
+                    super().write(filename, arcname, compress_type, compresslevel)
+                else:
+                    super().writestr(arcname, symlink, compress_type, compresslevel)
 
             self._update_progressbar()
         
@@ -882,7 +908,7 @@ class ZipFile(zipfile.ZipFile):
                     compresslevel=compresslevel
                 )
     
-    def remove(self, member: zipfile.ZipInfo | str) -> bool:
+    def remove(self, member: zipfile.ZipInfo | str, pwd: bytes | None=None) -> bool:
         '''
         Remove a file or folder from the archive.
         The archive must be open with mode 'a'
@@ -891,6 +917,7 @@ class ZipFile(zipfile.ZipFile):
 
         Args:
             member (zipfile.ZipInfo | str): Member
+            pwd (bytes | None): Password to decrypt files
 
         Raises:
             RuntimeError: remove() requires mode 'a'
@@ -942,7 +969,7 @@ class ZipFile(zipfile.ZipFile):
             #  remove files first, then subdirectories
             for file in files:
                 file = self.getinfo(file)
-                removedFile = self._remove_member(file)
+                removedFile = self._remove_member(file, pwd)
                 #  if file in ignore, ignore whole subdirectory
                 if not removedFile:
                     subdir = os.path.dirname(file.filename) + "/"
@@ -956,25 +983,37 @@ class ZipFile(zipfile.ZipFile):
                 files = [ file for file in names if subdir in file ]
                 if not files:
                     subdir = self.getinfo(subdir)
-                    self._remove_member(subdir)
+                    self._remove_member(subdir, pwd)
         else:
-            removed &= self._remove_member(member)
+            removed &= self._remove_member(member, pwd)
 
         self._finish_progressbar()
         return removed
 
-    def _remove_member(self, member: zipfile.ZipInfo) -> bool:
+    def _remove_member(self, member: zipfile.ZipInfo, pwd: bytes | None=None) -> bool:
         '''
         Remove member from archive
 
         Args:
             member (zipfile.ZipInfo): Member
+            pwd (bytes | None): Password to decrypt files
 
         Returns:
             bool: Whether it was removed or not. False means the file was in ignore.
         '''
+        #  Extract filename
+        arcname = member.filename
+
+        #  Symlinks real name handling
+        if os.path.basename(arcname).startswith("__symlink__"):
+            with self.open(member, pwd=pwd) as source:
+                symlink = source.readline().decode()
+                filename = symlink.split(",")[0]
+            arcname = os.path.dirname(arcname)
+            arcname = f"{arcname}/{filename}"
+        
         #  Check if not in ignore
-        if frozenset(member.filename.split("/")).intersection(self.ignore):
+        if frozenset(arcname.split("/")).intersection(self.ignore):
             return False
 
         # get a sorted filelist by header offset, in case the dir order

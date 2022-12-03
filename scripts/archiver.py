@@ -257,6 +257,7 @@ class ZipFile(zipfile.ZipFile):
         preferredEncoding: str="cp866",
         ignore: list[str]=[],
         overwriteDuplicates: bool=False,
+        symlinksToFiles: bool=False,
         progressbar: bool=False,
         useBarPrefix: bool=True,
         clearBarAfterFinished: bool=False
@@ -290,6 +291,10 @@ class ZipFile(zipfile.ZipFile):
                 or write filename with number in it. If you are going to
                 enable this option - open archive in 'a' mode.
                 Defaults to False
+            symlinksToFiles (bool, optional): Replace symbolic links with the
+                files they point to or not. If the file does not exist, the link
+                will be packed. Hard links are always written as regular files
+                regardless of this option. Defaults to False
             progressbar (bool, optional): Render progress bar while
                 running or not. Defaults to False.
             useBarPrefix (bool, optional): Show progress bar prefix, disable
@@ -315,6 +320,7 @@ class ZipFile(zipfile.ZipFile):
 
         self.ignore = ignore
         self.overwriteDuplicates = overwriteDuplicates
+        self.symlinksToFiles = symlinksToFiles
         
         self.progressbar = progressbar
 
@@ -325,21 +331,25 @@ class ZipFile(zipfile.ZipFile):
             self.unit = multiprocessing.Array("c", 6)
             self.unit.value = b"files"
             self.finished = multiprocessing.Value("b", False)
-            self._start_progressbar(createOnly=True)
+            self._start_progressbar("__init__", createOnly=True)
         
         self.useBarPrefix = useBarPrefix
         self.clearBarAfterFinished = clearBarAfterFinished
 
-    def _start_progressbar(self, createOnly: bool=False):
+    def _start_progressbar(self, ownerName: str, createOnly: bool=False):
         '''
         Start progress bar
         Because we cannot restart a terminated process.
         We need to instantiate a new.
 
         Args:
+            ownerName (str): Name of the progress bar owner.
+                This is an additional protection against updating and
+                finishing the progress bar with other functions.
             createOnly (bool, optional): Don't start renderingProcess
-            after creating. Defaults to False.
+                after creating. Defaults to False.
         '''
+        self._progressbarOwner = ownerName
         self.renderingProcess = multiprocessing.Process(
             target=ProgressBar(40).start_rendering_mp,
             args=(self.prefix, self.counter, self.unit, self.finished)
@@ -347,10 +357,17 @@ class ZipFile(zipfile.ZipFile):
         if not createOnly:
             self.renderingProcess.start()
 
-    def _update_progressbar(self):
+    def _update_progressbar(self, callerName: str):
         '''
         Increment progressbar counter if needed
+
+        Args:
+            callerName (str): Caller name, compared
+            with progress bar owner's name
         '''
+        if self._progressbarOwner != callerName:
+            return
+
         if self.progressbar and self.counter.value != -1:
             with self.counter.get_lock():
                 self.counter.value += 1
@@ -364,10 +381,17 @@ class ZipFile(zipfile.ZipFile):
         self.unit.value = b"files"
         self.finished.value = False
 
-    def _finish_progressbar(self):
+    def _finish_progressbar(self, callerName: str):
         '''
         Finish progressbar
+
+        Args:
+            callerName (str): Caller name, compared
+            with progress bar owner's name
         '''
+        if self._progressbarOwner != callerName:
+            return
+
         if self.progressbar and self.renderingProcess.is_alive():
             with self.finished.get_lock():
                 self.finished.value = True
@@ -669,15 +693,15 @@ class ZipFile(zipfile.ZipFile):
             if not member.endswith("/"):
                 self.counter.value = -1
                 self.unit.value = b""
-            self._start_progressbar()
+            self._start_progressbar("extract")
 
-        targetpath = self._extract_member(member, path, pwd)
+        targetpath = self._extract_member(member, path, pwd, "extract")
         #  extract directory contents
         if targetpath != path and os.path.isdir(targetpath):
             members = [ name for name in self.namelist() if member in name ][1:]
             self.extractall(path, members)
 
-        self._finish_progressbar()
+        self._finish_progressbar("extract")
 
         return targetpath
 
@@ -691,7 +715,7 @@ class ZipFile(zipfile.ZipFile):
         if self.progressbar and not self.renderingProcess.is_alive():
             if self.useBarPrefix:
                 self.prefix.value = f"Extracting \"{self.filename}\" : ".encode()
-            self._start_progressbar()
+            self._start_progressbar("extractall")
         
         if members is None:
             members = self.namelist()
@@ -709,14 +733,14 @@ class ZipFile(zipfile.ZipFile):
                     continue
                 else:
                     skip = ""
-            targetpath = self._extract_member(zipinfo, path, pwd)
+            targetpath = self._extract_member(zipinfo, path, pwd, "extractall")
             #  name was found in ignore, add path to skip
             if targetpath == path:
                 skip = zipinfo
         
-        self._finish_progressbar()
+        self._finish_progressbar("extractall")
 
-    def _extract_member(self, member, targetpath, pwd) -> str:
+    def _extract_member(self, member, targetpath, pwd, callerName="") -> str:
         '''
         Extract the ZipInfo object 'member' to a physical
         file on the path targetpath.
@@ -797,7 +821,7 @@ class ZipFile(zipfile.ZipFile):
                 open(targetpath, "wb") as target:
                 shutil.copyfileobj(source, target)
         
-        self._update_progressbar()
+        self._update_progressbar(callerName)
         
         return targetpath
 
@@ -827,11 +851,11 @@ class ZipFile(zipfile.ZipFile):
             if os.path.isfile(filename):
                 self.counter.value = -1
                 self.unit.value = b""
-            self._start_progressbar()
+            self._start_progressbar("write")
         
         self._write(filename, arcname, compress_type, compresslevel)
 
-        self._finish_progressbar()
+        self._finish_progressbar("write")
 
     def _write(
         self,
@@ -851,18 +875,31 @@ class ZipFile(zipfile.ZipFile):
 
         #  Check if file is a symlink
         if os.path.islink(filename):
-            #  symlink file content
-            symlink = "{},{},{}".format(
-                os.path.basename(filename),
-                os.readlink(filename),
-                os.path.isdir(filename)
-            )
-            #  generate new arcname
-            arcname = os.path.dirname(arcname)
-            arcname = f"{arcname}/__symlink__{hashlib.md5(symlink.encode()).hexdigest()}"
+            #  Try to get real file if needed
+            if self.symlinksToFiles:
+                try:
+                    filename = os.path.realpath(filename, strict=True)
+                    arcname = os.path.dirname(arcname)
+                    arcname = f"{arcname}/{os.path.basename(filename)}"
+                except OSError:
+                    #  failed to follow the link
+                    #  file doesn't exist or a symbolic link loop was found
+                    #  so write link as it is
+                    symlink = True
+
+            if not self.symlinksToFiles or symlink:
+                #  symlink file content
+                symlink = "{},{},{}".format(
+                    os.path.basename(filename),
+                    os.readlink(filename),
+                    os.path.isdir(filename)
+                )
+                #  generate new arcname
+                arcname = os.path.dirname(arcname)
+                arcname = f"{arcname}/__symlink__{hashlib.md5(symlink.encode()).hexdigest()}"
         
         #  Check for dir trailing slash
-        elif os.path.isdir(filename):
+        if os.path.isdir(filename) and symlink is None:
             if not arcname.endswith("/"):
                 arcname += "/"
 
@@ -894,7 +931,7 @@ class ZipFile(zipfile.ZipFile):
                 else:
                     super().writestr(arcname, symlink, compress_type, compresslevel)
 
-            self._update_progressbar()
+            self._update_progressbar("write")
         
         else:
             if create:
@@ -950,7 +987,7 @@ class ZipFile(zipfile.ZipFile):
             if not member.is_dir():
                 self.counter.value = -1
                 self.unit.value = b""
-            self._start_progressbar()
+            self._start_progressbar("remove")
 
         removed = True
 
@@ -987,7 +1024,7 @@ class ZipFile(zipfile.ZipFile):
         else:
             removed &= self._remove_member(member, pwd)
 
-        self._finish_progressbar()
+        self._finish_progressbar("remove")
         return removed
 
     def _remove_member(self, member: zipfile.ZipInfo, pwd: bytes | None=None) -> bool:
@@ -1062,6 +1099,6 @@ class ZipFile(zipfile.ZipFile):
         fp.seek(self.start_dir)
 
         if not member.is_dir():
-            self._update_progressbar()
+            self._update_progressbar("remove")
         
         return True

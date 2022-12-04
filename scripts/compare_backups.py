@@ -774,7 +774,7 @@ if __name__ == "__main__":
             ignore=args.ignore
         )
 
-    if args.destination is not None and args.path is not None:
+    elif args.destination is not None and args.path is not None:
         compare_backups(
             backupFilename="",
             backupDestination=args.destination,

@@ -65,6 +65,9 @@ requiredGroup.add_argument(
 )
 
 args = parser.parse_args()
+#  Named variables for simplicity
+ownerID = args.owner
+albumsID = args.albums
 
 
 vkSession = vk_api.VkApi(args.login, args.password)
@@ -73,20 +76,20 @@ vkSession.auth()
 vk = vkSession.get_api()
 
 #  Username to id
-if not args.owner.replace("-", "", 1).isnumeric():
-    args.owner = vk.utils.resolveScreenName(
-        screen_name=args.owner
+if not ownerID.replace("-", "", 1).isnumeric():
+    ownerID = vk.utils.resolveScreenName(
+        screen_name=ownerID
     )
-    args.owner["object_id"] = str(args.owner["object_id"])
+    ownerID["object_id"] = str(ownerID["object_id"])
     #  Group id must must be indicated with the sign "-"
-    if args.owner["type"] == "group":
-        args.owner["object_id"] = f"-{args.owner['object_id']}"
-    args.owner = args.owner["object_id"]
+    if ownerID["type"] == "group":
+        ownerID["object_id"] = f"-{ownerID['object_id']}"
+    ownerID = ownerID["object_id"]
 
 try:
     albums = vk.photos.getAlbums(
-        owner_id=args.owner,
-        albums_id=args.albums,
+        owner_id=ownerID,
+        albums_id=albumsID,
         need_system=1
     )
 except vk_api.exceptions.ApiError as ApiError:
@@ -94,18 +97,18 @@ except vk_api.exceptions.ApiError as ApiError:
     sys.exit(0)
 
 #  Albums selection mode
-if args.albums is None:
-    args.albums = []
+if albumsID is None:
+    albumsID = []
     for index in show_menu(
         "Enter album numbers to download",
         [ album["title"] for album in albums["items"] ]
     ):
-        args.albums.append(albums["items"][index]["id"])
+        albumsID.append(albums["items"][index]["id"])
 
-if args.albums:
+if albumsID:
     album = 0
     while album < albums["count"]:
-        if albums["items"][album]["id"] not in args.albums:
+        if albums["items"][album]["id"] not in albumsID:
             albums["items"].pop(album)
             albums["count"] -= 1
         else:
@@ -116,17 +119,17 @@ albums = albums["items"]
 if args.download_path:
     os.chdir(args.download_path)
 
-if args.owner.startswith("-"):
+if ownerID.startswith("-"):
     ownerName = vk.groups.getById(
-        group_id=args.owner[1:]
+        group_id=ownerID[1:]
     )[0]["name"]
 else:
     ownerName = vk.users.get(
-        user_ids=args.owner
+        user_ids=ownerID
     )[0]
     ownerName = f"{ownerName['first_name']} {ownerName['last_name']}"
 
-ownerName = f"{args.owner} {ownerName}"
+ownerName = f"{ownerID} {ownerName}"
 os.makedirs(ownerName, exist_ok=True)
 os.chdir(ownerName)
 
@@ -140,7 +143,7 @@ for album in albums:
     #  Maximum number of photos returned by photos.get is 1000
     for chunk in range(math.ceil(album["size"] / 1000)):
         photos = vk.photos.get(
-            owner_id=args.owner,
+            owner_id=ownerID,
             album_id=album["id"],
             photo_sizes=1,
             count=1000,

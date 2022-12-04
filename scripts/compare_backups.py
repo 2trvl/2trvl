@@ -27,27 +27,7 @@ from archiver import ProgressBar, ZipFile
 if os.name == "nt":
     import ctypes
 
-#----------------------
-#    Your Data Here    
-#----------------------
-#  Filename with extension to look for on drives
-#  Directory:   shterenscode
-#  Compressed:  shterenscode.zip
-BACKUP_FILENAME = ""
-#  Path of backup with which to compare
-#  /home/shteren/Desktop/shterenscode
-BACKUP_DESTINATION = ""
-#  Path of detailed report
-REPORT_FILEPATH = "compared.txt"
-#  Encoding to use when guessing the original
-PREFERRED_ENCODING = "cp866"
-#  Filenames to ignore in backup
-IGNORE = [".git"]
 
-
-#------------------------
-#    Backups Comparer    
-#------------------------
 class dircmp(filecmp.dircmp):
 
     def __init__(
@@ -97,7 +77,9 @@ class dircmp(filecmp.dircmp):
         else:
             self.leftBasePath = leftBasePath
             self.rightBasePath = rightBasePath
-    
+
+        self.progressbar = progressbar
+
         if progressbar:
             prefix = multiprocessing.Array("c", 1)
             prefix.value = b""
@@ -110,9 +92,27 @@ class dircmp(filecmp.dircmp):
             #  to track number of indexed files for sure
             self.renderingProcess = multiprocessing.Process(
                 target=ProgressBar(size=40, clearMode=True).start_rendering_mp,
-                args=(prefix, multiprocessing.Value("i", -1), self.postfix, self.finished)
+                args=(prefix, multiprocessing.Value("i", -1), self.postfix, self.finished),
+                daemon=True
             )
             self.renderingProcess.start()
+
+    def __enter__(self) -> "dircmp":
+        return self
+
+    def __exit__(self, excType, excValue, traceback):
+        self.finish_progressbar()
+
+    def __repr__(self) -> str:
+        return (
+            "dircmp(",
+            f"leftPath=\"{self.left}\", ",
+            f"rightPath=\"{self.right}\", ",
+            f"ignore={self.ignore}, ",
+            f"hide={self.hide}, ",
+            f"progressbar={self.progressbar}",
+            ")"
+        )
     
     def finish_progressbar(self):
         '''
@@ -604,58 +604,76 @@ def get_storage_drives() -> set[str]:
     return drives
 
 
-def compare_backups(path: str=None):
+def compare_backups(
+    backupFilename: str,
+    backupDestination: str,
+    reportFilepath: str="compared.txt",
+    preferredEncoding: str="cp866",
+    ignore: list[str]=[".git"],
+    path: str | None=None
+):
     '''
     Detects backups on connected drives and
     compares them with the current state located
-    at BACKUP_DESTINATION
+    at backupDestination
 
     Args:
-        path (str, optional): Path of backup to
-        compare with DEFAULT_DESTINATION. Disables
-        auto discovery. Defaults to None
+        backupFilename (str): Filename with extension
+            to look for on drives.
+        backupDestination (str): Path of backup with
+            which to compare.
+        reportFilepath (str, optional): Path of detailed
+            report. Defaults to "compared.txt".
+        preferredEncoding (str, optional): Encoding to use
+            when guessing zip filenames original.
+            Defaults to "cp866".
+        ignore (list[str], optional): Filenames to ignore
+            in backup. Defaults [".git"]
+        path (str | None, optional): Path of backup to
+            compare with backupDestination. Disables
+            auto discovery. Defaults to None
     '''
     if path:
-        path, BACKUP_FILENAME = os.path.split(path)
+        path, backupFilename = os.path.split(path)
         drives = { path }
     else:
         drives = get_storage_drives()
     
-    report = open(REPORT_FILEPATH, "w")
-    backupFilename = os.path.splitext(BACKUP_FILENAME)
+    report = open(reportFilepath, "w")
+    backupName, backupExtension = os.path.splitext(backupFilename)
 
     for drive in drives.copy():
         try:
-            if BACKUP_FILENAME in os.listdir(drive):
+            if backupFilename in os.listdir(drive):
                 print(f"Found backup in {drive}")
-                backupFilepath = os.path.join(drive, BACKUP_FILENAME)
+                backupFilepath = os.path.join(drive, backupFilename)
                 
-                if backupFilename[1]:
+                if backupExtension:
                     print(f"Extracting {backupFilepath}")
 
-                    if backupFilename[1] == ".zip":
+                    if backupExtension == ".zip":
                         with ZipFile(
                             file=backupFilepath,
                             mode="r",
-                            preferredEncoding=PREFERRED_ENCODING,
-                            ignore=IGNORE,
+                            preferredEncoding=preferredEncoding,
+                            ignore=ignore,
                             progressbar=True,
                             useBarPrefix=False
                         ) as zip:
                             zip.extractall(tempfile.gettempdir())
 
-                    backupFilepath = os.path.join(tempfile.gettempdir(), backupFilename[0])
+                    backupFilepath = os.path.join(tempfile.gettempdir(), backupName)
 
-                print(f"Comparing with {BACKUP_DESTINATION}")
+                print(f"Comparing with {backupDestination}")
                 compared = dircmp(
-                    leftPath=BACKUP_DESTINATION,
+                    leftPath=backupDestination,
                     rightPath=backupFilepath,
-                    ignore=IGNORE,
+                    ignore=ignore,
                     progressbar=True
                 )
 
                 print(
-                    f"( {BACKUP_DESTINATION}, {os.path.join(drive, BACKUP_FILENAME)} ):",
+                    f"( {backupDestination}, {os.path.join(drive, backupFilename)} ):",
                     end="\n\n",
                     file=report,
                     flush=True
@@ -694,7 +712,7 @@ def compare_backups(path: str=None):
                     end="\n\n"
                 )
 
-                if backupFilename[1]:
+                if backupExtension:
                     shutil.rmtree(backupFilepath)
 
             else:
@@ -704,7 +722,7 @@ def compare_backups(path: str=None):
             drives.remove(drive)
     
     if drives:
-        print(f"View {os.path.basename(REPORT_FILEPATH)} for detailed report")
+        print(f"View {os.path.basename(reportFilepath)} for detailed report")
     else:
         print("No backups found")
 
@@ -712,4 +730,56 @@ def compare_backups(path: str=None):
 
 
 if __name__ == "__main__":
-    compare_backups()
+    import argparse
+    parser = argparse.ArgumentParser(description="Backup Comparison Utility")
+    parser.add_argument(
+        "-n",
+        "--name",
+        help="filename with extension to look for on drives"
+    )
+    parser.add_argument(
+        "-d",
+        "--destination",
+        help="path of backup with which to compare"
+    )
+    parser.add_argument(
+        "--report",
+        default="compared.txt",
+        help="path of detailed report"
+    )
+    parser.add_argument(
+        "--preferred-encoding",
+        default="cp866",
+        help="encoding to use when guessing zip filenames original"
+    )
+    parser.add_argument(
+        "--ignore",
+        nargs="*",
+        default=[".git"],
+        help="filenames to ignore in backup"
+    )
+    parser.add_argument(
+        "-p",
+        "--path",
+        help="path of backup to compare with destination. disables auto discovery"
+    )
+    args = parser.parse_args()
+
+    if args.name is not None and args.destination is not None:
+        compare_backups(
+            backupFilename=args.name,
+            backupDestination=args.destination,
+            reportFilepath=args.report,
+            preferredEncoding=args.preferred_encoding,
+            ignore=args.ignore
+        )
+
+    if args.destination is not None and args.path is not None:
+        compare_backups(
+            backupFilename="",
+            backupDestination=args.destination,
+            reportFilepath=args.report,
+            preferredEncoding=args.preferred_encoding,
+            ignore=args.ignore,
+            path=args.path
+        )

@@ -251,7 +251,7 @@ class ZipFile(zipfile.ZipFile):
         mode: str="r",
         compression: int=zipfile.ZIP_STORED,
         allowZip64: bool=True,
-        compresslevel: bool | int=None,
+        compresslevel: int | None=None,
         *,
         strict_timestamps: bool=True,
         preferredEncoding: str="cp866",
@@ -275,7 +275,7 @@ class ZipFile(zipfile.ZipFile):
             allowZip64 (bool, optional): if True ZipFile will create files
                 with ZIP64 extensions when needed, otherwise it will raise
                 an exception when this would be necessary. Defaults to True.
-            compresslevel (bool | int, optional): None (default for the given
+            compresslevel (int | None, optional): None (default for the given
                 compression type) or an integer specifying the level to pass
                 to the compressor. When using ZIP_STORED or ZIP_LZMA this
                 keyword has no effect. When using ZIP_DEFLATED integers 0
@@ -1102,3 +1102,94 @@ class ZipFile(zipfile.ZipFile):
             self._update_progressbar("remove")
         
         return True
+
+
+if __name__ == "__main__":
+    import argparse    
+    parser = argparse.ArgumentParser(description="Zip File Archiver")
+    parser.add_argument(
+        "filepath",
+        help="zipfile"
+    )
+    parser.add_argument(
+        "-e",
+        "--extract",
+        nargs="*",
+        help="extract members from zip"
+    )
+    parser.add_argument(
+        "-w",
+        "--write",
+        nargs="*",
+        help="write files to zip"
+    )
+    parser.add_argument(
+        "-r",
+        "--remove",
+        nargs="*",
+        help="remove members from zip"
+    )
+    parser.add_argument(
+        "--preferred-encoding",
+        default="cp866",
+        help="encoding to use when guessing filenames original"
+    )
+    parser.add_argument(
+        "--ignore",
+        default=[],
+        help="filenames to ignore"
+    )
+    parser.add_argument(
+        "--overwrite-duplicates",
+        action="store_true",
+        help="overwrite file if it exists"
+    )
+    parser.add_argument(
+        "--symlinks-to-files",
+        action="store_true",
+        help="replace symbolic links with the files they point"
+    )
+    parser.add_argument(
+        "-l",
+        "--list",
+        action="store_true",
+        help="show listing of a zipfile"
+    )
+    parser.add_argument(
+        "-t",
+        "--test",
+        action="store_true",
+        help="test if a zipfile is valid"
+    )
+    args = parser.parse_args()
+
+    with ZipFile(
+        file=args.filepath,
+        mode="a",
+        preferredEncoding=args.preferred_encoding,
+        ignore=args.ignore,
+        overwriteDuplicates=args.overwrite_duplicates,
+        symlinksToFiles=args.symlinks_to_files,
+        progressbar=True
+    ) as zip:
+
+        if args.extract is not None:
+            for member in args.extract:
+                zip.extract(member)
+
+        if args.write is not None:
+            for filename in args.write:
+                zip.write(filename)
+
+        if args.remove is not None:
+            for member in args.remove:
+                zip.remove(member)
+
+        if args.list:
+            zip.printdir()
+
+        if args.test:
+            badfile = zip.testzip()
+            if badfile:
+                print("The following enclosed file is corrupted: {!r}".format(badfile))
+            print("Done testing")

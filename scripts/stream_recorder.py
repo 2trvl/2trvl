@@ -38,6 +38,20 @@ if args.download_path:
 try:
     ydlOpts = yt_dlp.parse_options(ytDlpArgs)[-1]
 
+    #  Sites specific args
+    YoutubeIE = yt_dlp.extractor.get_info_extractor("Youtube")
+    TwitchStreamIE = yt_dlp.extractor.get_info_extractor("TwitchStream")
+    
+    if YoutubeIE.suitable(args.url):
+        ydlOpts.update({
+            "noplaylist": True,
+            "live_from_start": True,
+            "wait_for_video": (0, 60)
+        })
+
+    elif TwitchStreamIE.suitable(args.url):
+        ydlOpts.update({ "fixup": "never" })
+
     with yt_dlp.YoutubeDL(ydlOpts) as ydl:
         ydl.extract_info(args.url)
 

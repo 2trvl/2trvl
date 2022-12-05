@@ -15,33 +15,44 @@ with additional features and fixes
 '''
 import os
 import yt_dlp
+import argparse
 
 from widgets import show_menu
 
-#----------------------
-#    Your Data Here    
-#----------------------
-VIDEO_URL = ""
-#  Where to download videos
-#  Leave empty to use the current directory
-DOWNLOAD_PATH = ""
-#  If there is no sound in the video
-#  Then add to it or not
-VIDEO_WITH_SOUND = True
+parser = argparse.ArgumentParser(
+    description="Video Downloader",
+    epilog="Additionally you can use yt_dlp options"
+)
+parser.add_argument(
+    "url",
+    help="video url"
+)
+parser.add_argument(
+    "--download-path",
+    help="where to download videos"
+)
+parser.add_argument(
+    "--video-with-sound",
+    action="store_true",
+    help=(
+        "if there is no sound in the video, then add to it. "
+        "use for sites where video and audio are stored separately"
+    )
+)
+args, ytDlpArgs = parser.parse_known_args()
 
 
-#------------------------
-#    Video Downloader    
-#------------------------
-ydl_opts = {
+ydlOpts = yt_dlp.parse_options(ytDlpArgs)[-1]
+
+ydlOpts.update({
     "quiet": True,
     "no_color": True,
     "format_sort": ["filesize"],
     "ignoreerrors": "only_download"
-}
+})
 
-with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-    videoInfo = ydl.extract_info(VIDEO_URL, download=False)
+with yt_dlp.YoutubeDL(ydlOpts) as ydl:
+    videoInfo = ydl.extract_info(args.url, download=False)
 
     sources = {}
     
@@ -49,7 +60,7 @@ with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         sourceFormatted = str(source["format_id"])
         
         #  YouTube specific
-        if "asr" in source and source["asr"] is None and VIDEO_WITH_SOUND:
+        if "asr" in source and source["asr"] is None and args.video_with_sound:
             sourceFormatted += "+ba"
 
         sources["[ {} ] [ {} ] [ {} ]".format(
@@ -67,7 +78,7 @@ with yt_dlp.YoutubeDL(ydl_opts) as ydl:
     ydl.params["format"] = ",".join([sources[index] for index in indexes])
     ydl.format_selector = ydl.build_format_selector(ydl.params["format"])
 
-    if DOWNLOAD_PATH:
-        os.chdir(DOWNLOAD_PATH)
+    if args.download_path:
+        os.chdir(args.download_path)
 
-    ydl.extract_info(VIDEO_URL)
+    ydl.extract_info(args.url)

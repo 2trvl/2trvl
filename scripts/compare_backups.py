@@ -335,7 +335,7 @@ class dircmp(filecmp.dircmp):
 
                 if os.path.isdir(filepath):
                     
-                    if dirs is not None:
+                    if dirs:
                         dirs[f"{file}{os.sep}"] = rootPath
                         
                         #  Recursively extract subdirs and files
@@ -364,10 +364,10 @@ class dircmp(filecmp.dircmp):
 
                             dirs.update(subdirs)
 
-                            if dirsFiles is not None:
+                            if dirsFiles:
                                 dirsFiles.update(subdirsFiles)
                 
-                elif dirsFiles is not None:
+                elif dirsFiles:
                     dirsFiles[file] = rootPath
 
             elif dirsFiles:
@@ -765,7 +765,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    if args.name is not None and args.destination is not None:
+    if args.name and args.destination:
         compare_backups(
             backupFilename=args.name,
             backupDestination=args.destination,
@@ -774,7 +774,7 @@ if __name__ == "__main__":
             ignore=args.ignore
         )
 
-    elif args.destination is not None and args.path is not None:
+    elif args.destination and args.path:
         compare_backups(
             backupFilename="",
             backupDestination=args.destination,

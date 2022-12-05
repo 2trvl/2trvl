@@ -15,34 +15,31 @@ additional features and fixes
 '''
 import os
 import yt_dlp
+import argparse
 
-#----------------------
-#    Your Data Here    
-#----------------------
-STREAM_URL = ""
-#  Where to record stream
-#  Leave empty to use the current directory
-DOWNLOAD_PATH = ""
+parser = argparse.ArgumentParser(
+    description="Stream Recorder",
+    epilog="Additionally you can use yt_dlp options"
+)
+parser.add_argument(
+    "url",
+    help="stream url"
+)
+parser.add_argument(
+    "--download-path",
+    help="where to record stream"
+)
+args, ytDlpArgs = parser.parse_known_args()
 
 
-#-----------------------
-#    Stream Recorder    
-#-----------------------
-#  TODO: Parse yt_dlp arguments from cmd
-if DOWNLOAD_PATH:
-    os.chdir(DOWNLOAD_PATH)
+if args.download_path:
+    os.chdir(args.download_path)
 
 try:
-    ydl_opts = {
-        "quiet": True,
-        "no_color": True,
-        "noplaylist": True,
-        "live_from_start": True,
-        "wait_for_video": (0, 60)
-    }
+    ydlOpts = yt_dlp.parse_options(ytDlpArgs)[-1]
 
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.extract_info(STREAM_URL)
+    with yt_dlp.YoutubeDL(ydlOpts) as ydl:
+        ydl.extract_info(args.url)
 
 except yt_dlp.utils.DownloadError:
     from datetime import datetime
@@ -53,7 +50,7 @@ except yt_dlp.utils.DownloadError:
     yt_dlp.utils.Popen.run([
         "ffmpeg",
         "-i",
-        STREAM_URL,
+        args.url,
         "-c:v",
         "copy",
         "-c:a",

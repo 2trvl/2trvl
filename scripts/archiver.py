@@ -814,7 +814,7 @@ class ZipFile(zipfile.ZipFile):
                 os.mkdir(targetpath)
             return targetpath
 
-        if symlink is not None:
+        if symlink:
             os.symlink(symlink, targetpath, isdir)
         else:
             with self.open(member, pwd=pwd) as source, \
@@ -1174,15 +1174,15 @@ if __name__ == "__main__":
         progressbar=True
     ) as zip:
 
-        if args.extract is not None:
+        if args.extract:
             for member in args.extract:
                 zip.extract(member)
 
-        if args.write is not None:
+        if args.write:
             for filename in args.write:
                 zip.write(filename)
 
-        if args.remove is not None:
+        if args.remove:
             for member in args.remove:
                 zip.remove(member)
 

@@ -1,11 +1,11 @@
 # created with python 3.10.4
 
-# download_vk_albums
-vk_api==11.9.9
-pyexiv2==2.8.0
-
 # archiver, compare_backups
 charset_normalizer==2.0.12
+
+# download_vk_albums
+pyexiv2==2.8.0
+vk_api==11.9.9
 
 # video_downloader, stream_recorder
 # also install ffmpeg

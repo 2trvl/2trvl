@@ -43,14 +43,14 @@ parser.add_argument(
 args, ytDlpArgs = parser.parse_known_args()
 
 
-ydlOpts = yt_dlp.parse_options(ytDlpArgs)[-1]
+ytDlpArgs.extend([
+    "--quiet",
+    "--no-colors",
+    "--ignore-errors",
+    "--format-sort", "filesize"
+])
 
-ydlOpts.update({
-    "quiet": True,
-    "no_color": True,
-    "format_sort": ["filesize"],
-    "ignoreerrors": "only_download"
-})
+ydlOpts = yt_dlp.parse_options(ytDlpArgs)[-1]
 
 with yt_dlp.YoutubeDL(ydlOpts) as ydl:
     videoInfo = ydl.extract_info(args.url, download=False)

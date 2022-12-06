@@ -15,6 +15,7 @@ additional features and fixes
 '''
 import argparse
 import os
+import sys
 
 import yt_dlp
 
@@ -34,6 +35,12 @@ args, ytDlpArgs = parser.parse_known_args()
 
 
 if args.download_path:
+    #  Clear recorder args
+    #  To process yt_dlp options
+    argPos = sys.argv.index("--download-path")
+    sys.argv.pop(argPos)
+    sys.argv.pop(argPos)
+    #  Move to directory
     os.chdir(args.download_path)
 
 try:

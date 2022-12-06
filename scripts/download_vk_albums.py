@@ -14,18 +14,18 @@ resolution and writes a description
 to the metadata
 
 '''
+import argparse
+import math
 import os
 import sys
-import math
-import vk_api
-import pyexiv2
-import argparse
-
 from urllib.parse import urlparse
 from urllib.request import urlretrieve
 
-from widgets import show_menu
+import pyexiv2
+import vk_api
+
 from common import charsForbidden
+from widgets import show_menu
 
 parser = argparse.ArgumentParser(description="Vk Album Downloader")
 parser.add_argument(

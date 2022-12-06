@@ -11,8 +11,8 @@ terminal or dmenu (supported by dmenu, rofi)
 
 '''
 import os
-
 from typing import TypeVar
+
 from common import WINDOWS_VT_MODE
 
 if WINDOWS_VT_MODE:

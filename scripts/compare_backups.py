@@ -13,14 +13,13 @@ compares them with the current state located
 at BACKUP_DESTINATION
 
 '''
+import filecmp
+import multiprocessing
 import os
 import shutil
-import filecmp
 import tempfile
-import multiprocessing
-
-from typing import IO
 from itertools import filterfalse
+from typing import IO
 
 from archiver import ProgressBar, ZipFile
 

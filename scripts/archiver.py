@@ -14,18 +14,18 @@ names and symbolic links with progress bar
 So far only supports .zip
 
 '''
-import os
-import time
-import shutil
 import hashlib
-import zipfile
 import itertools
-import threading
 import multiprocessing
-import charset_normalizer
-
-from typing import IO, Iterator
+import os
+import shutil
+import threading
+import time
+import zipfile
 from operator import attrgetter
+from typing import IO, Iterator
+
+import charset_normalizer
 
 from common import WINDOWS_VT_MODE
 from widgets import clear_terminal

@@ -10,9 +10,9 @@ Code that cannot be attributed to anything in
 particular and is used in several scripts
 
 '''
+import functools
 import os
 import platform
-import functools
 
 #  Characters not allowed in file names
 charsForbidden = {

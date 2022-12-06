@@ -13,9 +13,10 @@ Powered by yt-dlp a youtube-dl fork with
 additional features and fixes
 
 '''
-import os
-import yt_dlp
 import argparse
+import os
+
+import yt_dlp
 
 parser = argparse.ArgumentParser(
     description="Stream Recorder",

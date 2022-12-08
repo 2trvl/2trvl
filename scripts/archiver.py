@@ -318,6 +318,9 @@ class ZipFile(zipfile.ZipFile):
             strict_timestamps=strict_timestamps
         )
 
+        #  Archive filename
+        self.arcname = os.path.basename(self.filename)
+
         self.ignore = ignore
         self.overwriteDuplicates = overwriteDuplicates
         self.symlinksToFiles = symlinksToFiles
@@ -714,7 +717,7 @@ class ZipFile(zipfile.ZipFile):
         '''
         if self.progressbar and not self.renderingProcess.is_alive():
             if self.useBarPrefix:
-                self.prefix.value = f"Extracting \"{self.filename}\" : ".encode()
+                self.prefix.value = f"Extracting \"{self.arcname}\" : ".encode()
             self._start_progressbar("extractall")
         
         if members is None:
@@ -841,13 +844,14 @@ class ZipFile(zipfile.ZipFile):
         '''
         if arcname is None:
             arcname = "{}/{}".format(
-                os.path.splitext(self.filename)[0],
+                os.path.splitext(self.arcname)[0],
                 os.path.basename(filename.rstrip("/"))
             )
 
         if self.progressbar and not self.renderingProcess.is_alive():
             if self.useBarPrefix:
-                self.prefix.value = f"Writing \"{arcname}\" : ".encode()
+                member = os.path.basename(filename.rstrip("/"))
+                self.prefix.value = f"Writing \"{member}\" : ".encode()
             if os.path.isfile(filename):
                 self.counter.value = -1
                 self.unit.value = b""

@@ -484,6 +484,20 @@ class ZipFile(zipfile.ZipFile):
             if self.debug > 2:
                 print("total", total)
     
+    def is_ignored(self, path: str) -> bool:
+        '''
+        Check if file is being ignored according to the ignore parameter
+
+        Args:
+            path (str): Path, name or arcname
+
+        Returns:
+            bool: Ignored or not
+        '''
+        if frozenset(path.split("/")).intersection(self.ignore):
+            return True
+        return False
+
     def guess_encoding(self, binaryText: bytes) -> tuple[str, str]:
         '''
         Guesses encoding and decodes text using it
@@ -689,6 +703,9 @@ class ZipFile(zipfile.ZipFile):
         else:
             path = os.fspath(path)
 
+        if self.is_ignored(member):
+            return path
+
         if self.progressbar and not self.renderingProcess.is_alive():
             if self.useBarPrefix:
                 filename = os.path.basename(member.rstrip("/"))
@@ -765,8 +782,7 @@ class ZipFile(zipfile.ZipFile):
         else:
             symlink = None
         
-        #  Check if not in ignore
-        if frozenset(arcname.split("/")).intersection(self.ignore):
+        if self.is_ignored(arcname):
             return targetpath
         
         #  Original _extract_member() code
@@ -842,6 +858,9 @@ class ZipFile(zipfile.ZipFile):
         Put the bytes from filename into the archive under the name
         arcname.
         '''
+        if self.is_ignored(filename):
+            return
+
         if arcname is None:
             arcname = "{}/{}".format(
                 os.path.splitext(self.arcname)[0],
@@ -871,8 +890,7 @@ class ZipFile(zipfile.ZipFile):
         '''
         Real zipfile.write, recursive
         '''
-        #  Check if not in ignore
-        if frozenset(filename.split("/")).intersection(self.ignore):
+        if self.is_ignored(filename):
             return
 
         symlink = None
@@ -982,7 +1000,10 @@ class ZipFile(zipfile.ZipFile):
         # Make sure we have an info object
         if isinstance(member, str):
             # get the info object
-            member = self.getinfo(member)   
+            member = self.getinfo(member)
+
+        if self.is_ignored(member.filename):
+            return False
 
         if self.progressbar and not self.renderingProcess.is_alive():
             if self.useBarPrefix:
@@ -1042,7 +1063,6 @@ class ZipFile(zipfile.ZipFile):
         Returns:
             bool: Whether it was removed or not. False means the file was in ignore.
         '''
-        #  Extract filename
         arcname = member.filename
 
         #  Symlinks real name handling
@@ -1053,8 +1073,7 @@ class ZipFile(zipfile.ZipFile):
             arcname = os.path.dirname(arcname)
             arcname = f"{arcname}/{filename}"
         
-        #  Check if not in ignore
-        if frozenset(arcname.split("/")).intersection(self.ignore):
+        if self.is_ignored(arcname):
             return False
 
         # get a sorted filelist by header offset, in case the dir order

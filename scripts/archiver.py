@@ -1109,25 +1109,31 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Zip File Archiver")
     parser.add_argument(
         "filepath",
-        help="zipfile"
+        help="path to zip, if file doesn't exist it will be created"
     )
     parser.add_argument(
         "-e",
         "--extract",
         nargs="*",
-        help="extract members from zip"
+        help=(
+            "members to extract from zip. "
+            "use * argument to extract all archive members"
+        )
     )
     parser.add_argument(
         "-w",
         "--write",
         nargs="*",
-        help="write files to zip"
+        help=(
+            "files to write to zip. "
+            "use * argument to write all files in the current directory to an archive"
+        )
     )
     parser.add_argument(
         "-r",
         "--remove",
         nargs="*",
-        help="remove members from zip"
+        help="members to remove from zip"
     )
     parser.add_argument(
         "--preferred-encoding",
@@ -1175,10 +1181,16 @@ if __name__ == "__main__":
     ) as zip:
 
         if args.extract:
-            for member in args.extract:
-                zip.extract(member)
+            if "*" in args.extract:
+                zip.extractall()
+            else:
+                for member in args.extract:
+                    zip.extract(member)
 
         if args.write:
+            if "*" in args.write:
+                args.write.extend(os.listdir())
+                args.write.remove("*")
             for filename in args.write:
                 zip.write(filename)
 

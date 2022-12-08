@@ -1140,7 +1140,7 @@ if __name__ == "__main__":
         nargs="*",
         help=(
             "members to extract from zip. "
-            "use * argument to extract all archive members"
+            "use '*' argument to extract all archive members"
         )
     )
     parser.add_argument(
@@ -1149,7 +1149,7 @@ if __name__ == "__main__":
         nargs="*",
         help=(
             "files to write to zip. "
-            "use * argument to write all files in the current directory to an archive"
+            "use '*' argument to write all files in the current directory to an archive"
         )
     )
     parser.add_argument(
@@ -1172,7 +1172,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--overwrite-duplicates",
         action="store_true",
-        help="overwrite file if it exists"
+        help="overwrite file if it exists, when writing or extracting"
     )
     parser.add_argument(
         "--symlinks-to-files",
@@ -1189,7 +1189,7 @@ if __name__ == "__main__":
         "-t",
         "--test",
         action="store_true",
-        help="test if a zipfile is valid"
+        help="test if zipfile is valid"
     )
     args = parser.parse_args()
 

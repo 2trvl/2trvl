@@ -15,7 +15,7 @@ from typing import TypeVar
 
 from common import WINDOWS_VT_MODE
 
-if WINDOWS_VT_MODE:
+if WINDOWS_VT_MODE():
     import ctypes
     from ctypes import wintypes
 
@@ -105,7 +105,7 @@ def show_dmenu_input(prompt: str, valueType: T) -> T:
     return valueType()
 
 
-if WINDOWS_VT_MODE:
+if WINDOWS_VT_MODE():
 
     STD_OUTPUT_HANDLE = -11
 
@@ -133,7 +133,7 @@ def clear_terminal(rows: int) -> bool:
         bool: If function succeeds, the
         return value is True
     '''
-    if not WINDOWS_VT_MODE:
+    if not WINDOWS_VT_MODE():
         print(f"\033[{rows}A \033[0J")
         return True
     

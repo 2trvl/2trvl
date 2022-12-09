@@ -633,6 +633,7 @@ def compare_backups(
             auto discovery. Defaults to None
     '''
     if path:
+        path = path.rstrip("/").rstrip("\\")
         path, backupFilename = os.path.split(path)
         drives = { path }
     else:

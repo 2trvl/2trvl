@@ -30,7 +30,7 @@ import charset_normalizer
 from common import WINDOWS_VT_MODE
 from widgets import clear_terminal
 
-if WINDOWS_VT_MODE:
+if WINDOWS_VT_MODE():
     import ctypes
 
 
@@ -140,7 +140,7 @@ class ProgressBar():
 
         return not self.finished
 
-    if WINDOWS_VT_MODE:
+    if WINDOWS_VT_MODE():
         #  Active console screen buffer
         STD_OUTPUT_HANDLE = -11
 
@@ -166,7 +166,7 @@ class ProgressBar():
             visibility (bool): Visibility of cursor.
             True to show, False to hide.
         '''
-        if not WINDOWS_VT_MODE:
+        if not WINDOWS_VT_MODE():
             ESC_CODE = self.ESC_SHOW_CURSOR if visibility else self.ESC_HIDE_CURSOR
             print(ESC_CODE, end="\r", flush=True)
             return
@@ -1150,7 +1150,7 @@ if __name__ == "__main__":
         nargs="*",
         help=(
             "members to extract from zip. "
-            "use '*' argument to extract all archive members"
+            "use 'x' argument to extract all archive members"
         )
     )
     parser.add_argument(
@@ -1159,7 +1159,7 @@ if __name__ == "__main__":
         nargs="*",
         help=(
             "files to write to zip. "
-            "use '*' argument to write all files in the current directory to an archive"
+            "use 'x' argument to write all files in the current directory to an archive"
         )
     )
     parser.add_argument(
@@ -1168,7 +1168,7 @@ if __name__ == "__main__":
         nargs="*",
         help=(
             "members to remove from zip. "
-            "use '*' argument to remove archive completely"
+            "use 'x' argument to remove archive completely"
         )
     )
     parser.add_argument(
@@ -1226,7 +1226,7 @@ if __name__ == "__main__":
         ) as zip:
 
             if args.extract:
-                if "*" in args.extract:
+                if "x" in args.extract:
                     zip.extractall()
                 else:
                     members = zip.namelist()
@@ -1237,9 +1237,9 @@ if __name__ == "__main__":
                             print(f"extract: There is no member named \"{member}\"")
 
             if args.write:
-                if "*" in args.write:
+                if "x" in args.write:
                     args.write.extend(os.listdir())
-                    args.write.remove("*")
+                    args.write.remove("x")
                 for filename in args.write:
                     if os.path.exists(filename):
                         zip.write(filename)
@@ -1247,7 +1247,7 @@ if __name__ == "__main__":
                         print(f"write: File \"{filename}\" doesn't exist")
 
             if args.remove:
-                if "*" in args.remove:
+                if "x" in args.remove:
                     zip.filelist = []
                 else:
                     members = zip.namelist()

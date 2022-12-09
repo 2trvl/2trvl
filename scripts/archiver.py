@@ -1197,40 +1197,45 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    with ZipFile(
-        file=args.filepath,
-        mode="a",
-        preferredEncoding=args.preferred_encoding,
-        ignore=args.ignore,
-        overwriteDuplicates=args.overwrite_duplicates,
-        symlinksToFiles=args.symlinks_to_files,
-        progressbar=True,
-        clearBarAfterFinished=True
-    ) as zip:
+    if args.write or os.path.exists(args.filepath):
 
-        if args.extract:
-            if "*" in args.extract:
-                zip.extractall()
-            else:
-                for member in args.extract:
-                    zip.extract(member)
+        with ZipFile(
+            file=args.filepath,
+            mode="a",
+            preferredEncoding=args.preferred_encoding,
+            ignore=args.ignore,
+            overwriteDuplicates=args.overwrite_duplicates,
+            symlinksToFiles=args.symlinks_to_files,
+            progressbar=True,
+            clearBarAfterFinished=True
+        ) as zip:
 
-        if args.write:
-            if "*" in args.write:
-                args.write.extend(os.listdir())
-                args.write.remove("*")
-            for filename in args.write:
-                zip.write(filename)
+            if args.extract:
+                if "*" in args.extract:
+                    zip.extractall()
+                else:
+                    for member in args.extract:
+                        zip.extract(member)
 
-        if args.remove:
-            for member in args.remove:
-                zip.remove(member)
+            if args.write:
+                if "*" in args.write:
+                    args.write.extend(os.listdir())
+                    args.write.remove("*")
+                for filename in args.write:
+                    zip.write(filename)
 
-        if args.list:
-            zip.printdir()
+            if args.remove:
+                for member in args.remove:
+                    zip.remove(member)
 
-        if args.test:
-            badfile = zip.testzip()
-            if badfile:
-                print("The following enclosed file is corrupted: {!r}".format(badfile))
-            print("Done testing")
+            if args.list:
+                zip.printdir()
+
+            if args.test:
+                badfile = zip.testzip()
+                if badfile:
+                    print("The following enclosed file is corrupted: {!r}".format(badfile))
+                print("Done testing")
+    
+    else:
+        print(f"File \"{args.filepath}\" doesn't exist")

@@ -494,6 +494,9 @@ class ZipFile(zipfile.ZipFile):
         Returns:
             bool: Ignored or not
         '''
+        if os.sep == "\\":
+            path = path.replace("\\", "/")
+
         if frozenset(path.split("/")).intersection(self.ignore):
             return True
         return False
@@ -1200,7 +1203,8 @@ if __name__ == "__main__":
         ignore=args.ignore,
         overwriteDuplicates=args.overwrite_duplicates,
         symlinksToFiles=args.symlinks_to_files,
-        progressbar=True
+        progressbar=True,
+        clearBarAfterFinished=True
     ) as zip:
 
         if args.extract:

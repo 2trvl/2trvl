@@ -339,6 +339,12 @@ class ZipFile(zipfile.ZipFile):
         self.useBarPrefix = useBarPrefix
         self.clearBarAfterFinished = clearBarAfterFinished
 
+    def __exit__(self, type, value, traceback):
+        self.close()
+        #  Delete archive if empty
+        if not self.namelist():
+            os.remove(self.filename)
+
     def _start_progressbar(self, ownerName: str, createOnly: bool=False):
         '''
         Start progress bar
@@ -1160,7 +1166,10 @@ if __name__ == "__main__":
         "-r",
         "--remove",
         nargs="*",
-        help="members to remove from zip"
+        help=(
+            "members to remove from zip. "
+            "use '*' argument to remove archive completely"
+        )
     )
     parser.add_argument(
         "--preferred-encoding",
@@ -1182,6 +1191,12 @@ if __name__ == "__main__":
         "--symlinks-to-files",
         action="store_true",
         help="replace symbolic links with the files they point"
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_false",
+        help="don't clear progress bar after finished"
     )
     parser.add_argument(
         "-l",
@@ -1207,26 +1222,40 @@ if __name__ == "__main__":
             overwriteDuplicates=args.overwrite_duplicates,
             symlinksToFiles=args.symlinks_to_files,
             progressbar=True,
-            clearBarAfterFinished=True
+            clearBarAfterFinished=args.verbose
         ) as zip:
 
             if args.extract:
                 if "*" in args.extract:
                     zip.extractall()
                 else:
+                    members = zip.namelist()
                     for member in args.extract:
-                        zip.extract(member)
+                        if member in members:
+                            zip.extract(member)
+                        else:
+                            print(f"extract: There is no member named \"{member}\"")
 
             if args.write:
                 if "*" in args.write:
                     args.write.extend(os.listdir())
                     args.write.remove("*")
                 for filename in args.write:
-                    zip.write(filename)
+                    if os.path.exists(filename):
+                        zip.write(filename)
+                    else:
+                        print(f"write: File \"{filename}\" doesn't exist")
 
             if args.remove:
-                for member in args.remove:
-                    zip.remove(member)
+                if "*" in args.remove:
+                    zip.filelist = []
+                else:
+                    members = zip.namelist()
+                    for member in args.remove:
+                        if member in members:
+                            zip.remove(member)
+                        else:
+                            print(f"remove: There is no member named \"{member}\"")
 
             if args.list:
                 zip.printdir()
@@ -1238,4 +1267,4 @@ if __name__ == "__main__":
                 print("Done testing")
     
     else:
-        print(f"File \"{args.filepath}\" doesn't exist")
+        print(f"open: File \"{args.filepath}\" doesn't exist")

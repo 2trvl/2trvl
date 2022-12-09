@@ -499,6 +499,7 @@ class ZipFile(zipfile.ZipFile):
 
         if frozenset(path.split("/")).intersection(self.ignore):
             return True
+        
         return False
 
     def guess_encoding(self, binaryText: bytes) -> tuple[str, str]:
@@ -558,7 +559,7 @@ class ZipFile(zipfile.ZipFile):
         '''
         filenames = []
         for filename in filename.split(b"/"):
-            __, filename = self.guess_encoding(filename)
+            filename = self.guess_encoding(filename)[1]
             filenames.append(filename)
         
         filename = "/".join(filenames)

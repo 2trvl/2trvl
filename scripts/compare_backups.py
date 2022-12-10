@@ -104,12 +104,12 @@ class dircmp(filecmp.dircmp):
 
     def __repr__(self) -> str:
         return (
-            "dircmp(",
-            f"leftPath=\"{self.left}\", ",
-            f"rightPath=\"{self.right}\", ",
-            f"ignore={self.ignore}, ",
-            f"hide={self.hide}, ",
-            f"progressbar={self.progressbar}",
+            "dircmp("
+            f"leftPath=\"{self.left}\", "
+            f"rightPath=\"{self.right}\", "
+            f"ignore={self.ignore}, "
+            f"hide={self.hide}, "
+            f"progressbar={self.progressbar}"
             ")"
         )
     

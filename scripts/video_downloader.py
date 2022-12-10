@@ -47,7 +47,9 @@ ytDlpArgs.extend([
     "--quiet",
     "--no-colors",
     "--ignore-errors",
-    "--format-sort", "filesize"
+    "--format-sort", "filesize",
+    "--recode-video", "avi>mp4/flv>mp4/mkv>mp4/mov>mp4/webm>mp4",
+    "--output", "%(title)s [%(id)s] [%(height,format_note)s].%(ext)s"
 ])
 
 ydlOpts = yt_dlp.parse_options(ytDlpArgs)[-1]
@@ -78,6 +80,7 @@ with yt_dlp.YoutubeDL(ydlOpts) as ydl:
 
     ydl.params["format"] = ",".join([sources[index] for index in indexes])
     ydl.format_selector = ydl.build_format_selector(ydl.params["format"])
+    ydl.params["quiet"] = False
 
     if args.download_path:
         os.chdir(args.download_path)

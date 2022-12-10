@@ -341,9 +341,20 @@ class ZipFile(zipfile.ZipFile):
 
     def __exit__(self, type, value, traceback):
         self.close()
+        
         #  Delete archive if empty
-        if not self.namelist():
-            os.remove(self.filename)
+        if self.filelist:
+            return
+
+        if self.progressbar:
+            if self.useBarPrefix:
+                self.prefix.value = f"Removing \"{self.arcname}\" : ".encode()
+            self.counter.value = -1
+            self.unit.value = b""
+            self._start_progressbar("__exit__")
+        
+        os.remove(self.filename)
+        self._finish_progressbar("__exit__")
 
     def _start_progressbar(self, ownerName: str, createOnly: bool=False):
         '''
@@ -1150,7 +1161,7 @@ if __name__ == "__main__":
         nargs="*",
         help=(
             "members to extract from zip. "
-            "use 'x' argument to extract all archive members"
+            "use '/' argument to extract all archive members"
         )
     )
     parser.add_argument(
@@ -1159,7 +1170,7 @@ if __name__ == "__main__":
         nargs="*",
         help=(
             "files to write to zip. "
-            "use 'x' argument to write all files in the current directory to an archive"
+            "use '/' argument to write all files in the current directory to an archive"
         )
     )
     parser.add_argument(
@@ -1168,7 +1179,7 @@ if __name__ == "__main__":
         nargs="*",
         help=(
             "members to remove from zip. "
-            "use 'x' argument to remove archive completely"
+            "use '/' argument to remove archive completely"
         )
     )
     parser.add_argument(
@@ -1226,7 +1237,7 @@ if __name__ == "__main__":
         ) as zip:
 
             if args.extract:
-                if "x" in args.extract:
+                if "/" in args.extract:
                     zip.extractall()
                 else:
                     members = zip.namelist()
@@ -1237,9 +1248,9 @@ if __name__ == "__main__":
                             print(f"extract: There is no member named \"{member}\"")
 
             if args.write:
-                if "x" in args.write:
+                if "/" in args.write:
                     args.write.extend(os.listdir())
-                    args.write.remove("x")
+                    args.write.remove("/")
                 for filename in args.write:
                     if os.path.exists(filename):
                         zip.write(filename)
@@ -1247,7 +1258,7 @@ if __name__ == "__main__":
                         print(f"write: File \"{filename}\" doesn't exist")
 
             if args.remove:
-                if "x" in args.remove:
+                if "/" in args.remove:
                     zip.filelist = []
                 else:
                     members = zip.namelist()

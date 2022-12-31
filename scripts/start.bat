@@ -4,6 +4,7 @@
 : # Or any other python script in the folder
 : # https://stackoverflow.com/q/17510688
 : # Also loads environment variables from .env file if it exists
+: #!/bin/bash
 
 :<<"::Batch"
     @echo off

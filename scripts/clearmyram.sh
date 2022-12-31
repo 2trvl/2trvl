@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 chckusr=$(id -u);
 
@@ -10,6 +10,7 @@ if [ $chckusr = "0" ] ; then
     swapon -a
     echo "Cleaned!";
 else
+    filepath="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
     echo "Starting as root...";
-    sudo ./clearmyram;
+    sudo "$filepath/clearmyram.sh";
 fi

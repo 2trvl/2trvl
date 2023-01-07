@@ -18,7 +18,7 @@ declare -a dependencies=(
     "zsh-syntax-highlighting"
 )
 declare -A resources=(
-    [spaceship-prompt-url]=https://github.com/spaceship-prompt/spaceship-prompt/archive/refs/heads/master.zip
+	[spaceship-prompt-url]=https://github.com/spaceship-prompt/spaceship-prompt/archive/refs/heads/master.zip
     [spaceship-prompt-path]="$ZDOTDIR/themes"
     [zsh-autosuggestions-url]=https://github.com/zsh-users/zsh-autosuggestions/archive/refs/heads/master.zip
     [zsh-autosuggestions-path]="$ZDOTDIR/plugins"
@@ -31,16 +31,16 @@ declare -A resources=(
 )
 # downloader url path
 downloader() {
-    ping -q -c1 github.com > /dev/null
+	ping -q -c1 github.com > /dev/null
 
     # try to download url
-    if [ $? -eq 0 ]; then
-        if [ $(curl -o /dev/null -I -L -s -w "%{http_code}" $1) != "200" ]; then
-            return 1
-        else
-            curl -o "$2" -L -s -f --create-dirs $1 > /dev/null
-        fi
-    fi
+	if [ $? -eq 0 ]; then
+	    if [ $(curl -o /dev/null -I -L -s -w "%{http_code}" $1) != "200" ]; then
+	        return 1
+	    else
+	        curl -o "$2" -L -s -f --create-dirs $1 > /dev/null
+	    fi
+	fi
 }
 
 # theme
@@ -316,6 +316,9 @@ setopt extended_glob             # treat the '#', '~' and '^' characters as part
 setopt nomatch                   # save argument in history despite no match
 setopt notify                    # report the status of background jobs immediately
 setopt numeric_glob_sort         # sort filenames numerically when it makes sense
+
+# disable stop/start scheme on ctrl+s/ctrl+d
+stty -ixon
 
 # aliases for ls
 alias ll='ls -l'

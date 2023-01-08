@@ -1,5 +1,8 @@
 # PRIME Render Offload does not work on nvidia-390xx drivers
 # So for 390xx use xorg.conf.intel-nvidia-only
+# 
+# To run a program on the nvidia card: prime-run application
+# See Nvidia Prime for other details
 
 Section "ServerLayout"
     Identifier     "Layout0"

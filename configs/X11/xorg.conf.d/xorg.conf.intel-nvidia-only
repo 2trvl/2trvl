@@ -1,4 +1,5 @@
-#   20-nvidia.conf
+# Disable intel, use nvidia only
+
 Section "ServerLayout"
     Identifier "layout"
     Screen   0 "nvidia"
@@ -16,30 +17,15 @@ Section "Screen"
     Device     "nvidia"
     Option     "AllowEmptyInitialConfiguration" "Yes"
 EndSection
-
+​
 Section "Device"
     Identifier "intel"
     Driver     "modesetting"
     BusID      "PCI:0:2:0"
     Option     "AccelMethod" "none"
 EndSection
-
+​
 Section "Screen"
     Identifier "intel"
     Device     "intel"
-EndSection
-
-#   10-monitor.conf
-Section "Monitor"
-    Identifier "VGA-0"
-    Option     "Ignore" "true"
-EndSection
-
-#   40-libinput.conf
-Section  "InputClass"
-    Identifier "touchpad catch all"
-    Driver "libinput"
-    MatchIsTouchpad  "on"
-    Option "Tapping" "on"
-    Option "TappingButtonMap" "lmr"
 EndSection

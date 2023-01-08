@@ -1,0 +1,16 @@
+# My config for ASUS K53SD
+
+#   10-monitor.conf
+Section "Monitor"
+    Identifier "VGA-0"
+    Option     "Ignore" "true"
+EndSection
+
+#   40-libinput.conf
+Section  "InputClass"
+    Identifier "touchpad catch all"
+    Driver "libinput"
+    MatchIsTouchpad  "on"
+    Option "Tapping" "on"
+    Option "TappingButtonMap" "lmr"
+EndSection

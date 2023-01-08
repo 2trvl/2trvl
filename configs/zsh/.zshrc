@@ -66,7 +66,6 @@ for item in ${dependencies[@]::1}; do
         zstyle ':vcs_info:git:*' formats '%F{magenta}%r (%b)%f'
         zstyle ':vcs_info:*' enable git
         failed+=($item)
-        break
     else
         unzip -o -q -d "${resources[$item-path]}" "${resources[$item-path]}/$item.zip"
         mv "${resources[$item-path]}/$item-master" "${resources[$item-path]}/$item"
@@ -148,6 +147,7 @@ if ! declare -f precmd_vcs_info > /dev/null; then
     # char
     SPACESHIP_CHAR_SUFFIX=" "
     SPACESHIP_CHAR_SYMBOL="❯"
+    SPACESHIP_CHAR_SYMBOL_SECONDARY=""
     # load theme
     source "$ZDOTDIR/themes/spaceship-prompt/spaceship.zsh"
 fi

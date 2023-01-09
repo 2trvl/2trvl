@@ -112,6 +112,13 @@ Then: rebuild initframs
 options module_name parameter_name=parameter_value
 ```
 
+For example, to disable open source nvidia driver:
+/etc/modprobe.d/blacklist-nvidia-nouveau.conf
+```
+blacklist nouveau
+options nouveau modeset=0
+```
+
 # Disable intel, use nvidia only
 
 Add the following commands to your xinitrc

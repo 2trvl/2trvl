@@ -113,6 +113,7 @@ options module_name parameter_name=parameter_value
 ```
 
 For example, to disable open source nvidia driver:
+
 /etc/modprobe.d/blacklist-nvidia-nouveau.conf
 ```
 blacklist nouveau

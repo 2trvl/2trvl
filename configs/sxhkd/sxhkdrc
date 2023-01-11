@@ -48,8 +48,16 @@ super + alt + {t,p,f,F11}
     bspc node -t {tiled,pseudo_tiled,floating,fullscreen}
 
 # swap window with the biggest one
-super + alt + s
+super + alt + b
     bspc node -s biggest.local
+
+# hide focused window
+super + alt + h
+    bspc node -g hidden=on
+
+# show all windows or hide all if none are hidden
+super + alt + s
+    if [ -n "$(bspc query -N -n .hidden)" ]; then flag=off else flag=on; fi && for i in $(bspc query -N); bspc node $i -g hidden=$flag
 
 #----~ BSPWM: Preselection ~----#
 

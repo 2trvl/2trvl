@@ -123,20 +123,20 @@ XF86MonBrightness{Down,Up}
 
 # shutdown
 super + shift + p
-    poweroff
+    kitty --start-as=fullscreen zsh -c "echo Poweroff::Auth; sudo poweroff"
 
 # reboot
 super + shift + r
-    reboot
+    kitty --start-as=fullscreen zsh -c "echo Reboot::Auth; sudo reboot"
 
 # sleep
 super + shift + s
-    systemctl suspend || zzz -z
+    kitty --start-as=fullscreen zsh -c "echo Sleep::Auth; sudo systemctl suspend || zzz -z"
 
 # hibernate
 super + shift + h
-    systemctl hibernate || zzz -Z
+    kitty --start-as=fullscreen zsh -c "echo Hibernate::Auth; sudo systemctl hibernate || zzz -Z"
 
 # hybrid sleep
 super + shift + ctrl + s
-    systemctl hybrid-sleep || zzz -H
+    kitty --start-as=fullscreen zsh -c "echo HybridSleep::Auth; sudo systemctl hybrid-sleep || zzz -H"

@@ -39,7 +39,7 @@ super + {_,alt + }{1-9,0}
 
 # focus the last node/desktop
 super + {grave,Tab}
-	bspc {node,desktop} -f last
+    bspc {node,desktop} -f last
 
 #----~ BSPWM: Workspace Management ~----#
 
@@ -49,7 +49,7 @@ super + alt + {t,p,f,F11}
 
 # swap window with the biggest one
 super + alt + s
-	bspc node -s biggest.local
+    bspc node -s biggest.local
 
 #----~ BSPWM: Preselection ~----#
 

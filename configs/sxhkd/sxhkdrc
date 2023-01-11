@@ -123,20 +123,20 @@ XF86MonBrightness{Down,Up}
 
 # shutdown
 super + shift + p
-    kitty --start-as=fullscreen zsh -c "echo Poweroff::Auth; sudo poweroff"
+    kitty -o font_size=15 --start-as=fullscreen zsh -c "echo -e '\033[38;5;226mPoweroff::Auth\033[38;5;231m'; sudo poweroff"
 
 # reboot
 super + shift + r
-    kitty --start-as=fullscreen zsh -c "echo Reboot::Auth; sudo reboot"
+    kitty -o font_size=15 --start-as=fullscreen zsh -c "echo -e '\033[38;5;226mReboot::Auth\033[38;5;231m'; sudo reboot"
 
 # sleep
 super + shift + s
-    kitty --start-as=fullscreen zsh -c "echo Sleep::Auth; sudo systemctl suspend || zzz -z"
+    kitty -o font_size=15 --start-as=fullscreen zsh -c "echo -e '\033[38;5;226mSleep::Auth\033[38;5;231m'; sudo systemctl suspend || sudo zzz -z"
 
 # hibernate
 super + shift + h
-    kitty --start-as=fullscreen zsh -c "echo Hibernate::Auth; sudo systemctl hibernate || zzz -Z"
+    kitty -o font_size=15 --start-as=fullscreen zsh -c "echo -e '\033[38;5;226mHibernate::Auth\033[38;5;231m'; sudo systemctl hibernate || sudo zzz -Z"
 
 # hybrid sleep
 super + shift + ctrl + s
-    kitty --start-as=fullscreen zsh -c "echo HybridSleep::Auth; sudo systemctl hybrid-sleep || zzz -H"
+    kitty -o font_size=15 --start-as=fullscreen zsh -c "echo -e '\033[38;5;226mHybridSleep::Auth\033[38;5;231m'; sudo systemctl hybrid-sleep || sudo zzz -H"

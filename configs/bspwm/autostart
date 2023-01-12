@@ -1,0 +1,17 @@
+_run() {
+    pgrep -x "${1}" > /dev/null || "$@" &
+}
+
+_rerun() {
+    pkill -f "${1}"
+    
+    while $(pgrep -x "${1}" > /dev/null); do
+        sleep 1
+    done
+    
+    "$@" &
+}
+
+_run sxhkd
+_run xsetroot -cursor_name left_ptr
+_rerun redshift -l 59.9343:30.3351 -b 1.0:0.8

@@ -17,7 +17,7 @@ super + f
 
 # additional browser
 super + b
-    prime-run brave-browser-stable || brave-browser-stable
+    brave-browser-stable
 
 # telegram
 super + t
@@ -89,13 +89,13 @@ super + ctrl + {Left,Down,Up,Right}
 super + {_,alt + }w
     bspc node -{c,k}
 
-# quit/restart bspwm
-super + alt + {q,r}
-    bspc {quit,wm -r}
+# quit bspwm
+super + alt + q
+    for window_id in $(bspc query -W); do bspc window $window_id -c; done; bspc quit
 
-# quit all
-super + alt + x
-    kill -9 -1
+# restart wm
+super + alt + r
+    bspc wm -r
 
 #----~ Media Keys ~----#
 

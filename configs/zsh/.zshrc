@@ -31,7 +31,7 @@ declare -A resources=(
     [zsh-syntax-highlighting-path]="$ZDOTDIR/plugins"
 )
 # downloader url path
-downloader() {
+_downloader() {
     ping -q -c1 github.com > /dev/null
 
     # try to download url
@@ -49,7 +49,7 @@ for item in ${dependencies[@]::1}; do
     if [ -z "$DISPLAY" ]; then
         (exit 1)
     elif [ ! -d "${resources[$item-path]}/$item" ]; then
-        downloader "${resources[$item-url]}" "${resources[$item-path]}/$item.zip"
+        _downloader "${resources[$item-url]}" "${resources[$item-path]}/$item.zip"
     else
         continue
     fi
@@ -156,7 +156,7 @@ fi
 # plugins
 for item in ${dependencies[@]:1}; do
     if [ ! -d "${resources[$item-path]}/$item" ]; then
-        downloader "${resources[$item-url]}" "${resources[$item-path]}/$item.zip"
+        _downloader "${resources[$item-url]}" "${resources[$item-path]}/$item.zip"
 
         if [ $? -ne 0 ]; then
             failed+=($item)
@@ -195,7 +195,7 @@ for item in ${dependencies[@]:1}; do
 done
 
 # remove all installed dependencies
-uninstall() {
+_uninstall() {
     rm -rf "$ZDOTDIR/themes"
     rm -rf "$ZDOTDIR/plugins"
     rm -f "$ZDOTDIR/.zcompdump"
